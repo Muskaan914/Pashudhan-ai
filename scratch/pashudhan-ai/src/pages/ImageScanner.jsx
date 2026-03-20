@@ -42,6 +42,10 @@ const ImageScanner = () => {
       const response = await fetch(`${API_URL}/api/predict/`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+       },
+
       });
 
       const data = await response.json();
