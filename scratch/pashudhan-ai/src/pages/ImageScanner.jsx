@@ -2,10 +2,14 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, CheckCircle2, Search, XCircle } from 'lucide-react';
 import buffaloImg from '../assets/buffalo.png';
 
+const API_URL = 'https://brokenly-insupportable-carmine.ngrok-free.app';
+
 const ImageScanner = () => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState(null);
 
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -15,33 +19,58 @@ const ImageScanner = () => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
-      setResult(null); // Reset previous results
+      setSelectedFile(file);
+      setResult(null);
+      setError(null);
     }
   };
 
-  const simulateScan = () => {
-    // If no new image selected, we default to the placeholder just to demonstrate the flow
-    if (!selectedImage && !buffaloImg) return;
+  const handleScan = async () => {
+    if (!selectedFile) {
+      setError('Please select an image first.');
+      return;
+    }
 
     setScanning(true);
     setResult(null);
+    setError(null);
 
-    setTimeout(() => {
-      setScanning(false);
-      setResult({
-        breed: 'Murrah Buffalo',
-        confidence: '98%',
-        health: 'Healthy',
-        notes: 'Excellent coat condition. No visible signs of skin diseases.'
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      const response = await fetch(`${API_URL}/api/predict/`, {
+        method: 'POST',
+        body: formData,
       });
-    }, 2000);
+
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setResult({
+          breed: data.breed,
+          confidence: `${(data.confidence * 100).toFixed(1)}%`,
+          health: 'Analyzed',
+          notes: `Top breed detected: ${data.breed}. Confidence: ${(data.confidence * 100).toFixed(1)}%`,
+          top5: data.top_5
+        });
+      }
+    } catch (err) {
+      setError('Failed to connect to server. Make sure backend is running.');
+    } finally {
+      setScanning(false);
+    }
   };
 
   const clearImage = () => {
     setSelectedImage(null);
+    setSelectedFile(null);
     setResult(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   return (
@@ -54,7 +83,6 @@ const ImageScanner = () => {
         <Camera size={36} color="var(--color-primary)" />
       </header>
 
-      {/* Hidden file inputs configured for gallery and camera */}
       <input
         type="file"
         accept="image/*"
@@ -71,10 +99,7 @@ const ImageScanner = () => {
         onChange={handleFileChange}
       />
 
-      {/* Main Image Area with Cards */}
       <div className="card" style={{ position: 'relative', overflow: 'hidden', padding: 0 }}>
-
-        {/* Preview image */}
         <div style={{ position: 'relative' }}>
           <img
             src={selectedImage || buffaloImg}
@@ -93,7 +118,7 @@ const ImageScanner = () => {
         </div>
 
         <div style={{ padding: '20px', textAlign: 'center' }}>
-          <p style={{ marginBottom: '20px' }}>Upload or capture a photo of the animal to detect breed and visible diseases.</p>
+          <p style={{ marginBottom: '20px' }}>Upload or capture a photo of the animal to detect breed.</p>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '16px' }}>
             <button
@@ -116,15 +141,14 @@ const ImageScanner = () => {
 
           <button
             className="btn btn-primary"
-            onClick={simulateScan}
-            disabled={scanning || (!selectedImage && !buffaloImg)}
+            onClick={handleScan}
+            disabled={scanning || !selectedFile}
             style={{ width: '100%' }}
           >
             {scanning ? 'Analyzing Image...' : <><Search size={20} /> Scan AI</>}
           </button>
         </div>
 
-        {/* Scanning Overlay (Spinner & Text) */}
         {scanning && (
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
             <div className="spinner" style={{ width: '60px', height: '60px', border: '5px solid var(--color-secondary)', borderTop: '5px solid var(--color-primary)', borderRadius: '50%', animation: 'spin 1.2s linear infinite' }} />
@@ -134,7 +158,14 @@ const ImageScanner = () => {
         )}
       </div>
 
-      {/* Results Section */}
+      {/* Error */}
+      {error && (
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accent)', background: '#fff3f0' }}>
+          <p style={{ color: '#b05d46' }}>⚠️ {error}</p>
+        </div>
+      )}
+
+      {/* Results */}
       {result && !scanning && (
         <div className="card" style={{ borderLeft: '4px solid var(--color-primary)' }}>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -152,11 +183,18 @@ const ImageScanner = () => {
             </div>
           </div>
 
-          <div style={{ background: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>Health Status</p>
-            <h3 style={{ fontSize: '1.5rem', color: 'green', marginBottom: '8px' }}>{result.health}</h3>
-            <p style={{ fontSize: '0.95rem', color: 'var(--color-text-main)' }}>{result.notes}</p>
-          </div>
+          {/* Top 5 breeds */}
+          {result.top5 && (
+            <div style={{ background: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>Top 5 Predictions</p>
+              {Object.entries(result.top5).map(([breed, prob]) => (
+                <div key={breed} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.9rem' }}>{breed}</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: 600 }}>{(prob * 100).toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
