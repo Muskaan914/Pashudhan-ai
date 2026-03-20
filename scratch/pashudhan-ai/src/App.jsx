@@ -12,12 +12,16 @@ function App() {
     <Router>
       <div className="main-content">
         <Routes>
+          <Route path="/" element={<Dashboard />} />  
+
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/health" element={<HealthTracking />} />
           <Route path="/scan" element={<ImageScanner />} />
           <Route path="/milk" element={<MilkProduction />} />
           <Route path="/chat" element={<ChatbotHelper />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* fallback */}
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </div>
       <Navigation />
