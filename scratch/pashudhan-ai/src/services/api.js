@@ -14,20 +14,29 @@ export async function scanAnimal(imageFile) {
     reader.readAsDataURL(imageFile);
   });
 
-  const res = await fetch(GEMINI_URL, {
+  const res = await fetch(GROQ_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GROQ_KEY}`,
+    },
+    mode: "cors",
     body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: imageFile.type || "image/jpeg", data: base64 } },
-          { text: 'You are a livestock expert. Identify this animal breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole. Reply ONLY with valid JSON: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence about coat and body condition"}' },
-        ],
-      }],
-      generationConfig: { maxOutputTokens: 150, temperature: 0.1 },
+      model: "llama3-8b-8192",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert AI veterinarian for Indian livestock. Reply ONLY with valid JSON, no markdown: {"possible_conditions": ["condition1", "condition2"], "severity": "mild or moderate or severe", "immediate_actions": ["action1", "action2"], "medicines": ["medicine (dosage)"], "when_to_call_vet": "explanation", "prevention": "tip"}`,
+        },
+        {
+          role: "user",
+          content: `Farmer says: ${symptomsText}`,
+        },
+      ],
+      max_tokens: 500,
+      temperature: 0.2,
     }),
   });
-
   const data = await res.json();
   try {
     const raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
