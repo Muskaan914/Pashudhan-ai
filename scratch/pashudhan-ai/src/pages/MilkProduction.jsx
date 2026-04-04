@@ -1,67 +1,132 @@
-import React, { useState } from 'react';
-import { Droplets, Calendar, BarChart3, PlusCircle } from 'lucide-react';
+// src/pages/MilkPage.jsx
+import { useState, useEffect } from "react";
+import { addMilkEntry, getWeeklyMilk } from "../services/api";
+import "./MilkPage.css";
 
-const MilkProduction = () => {
-  const [liters, setLiters] = useState('');
-  
-  const handleLog = () => {
-    if(!liters) return;
-    alert(`Logged ${liters} Liters for Today!`);
-    setLiters('');
-  };
+export default function MilkPage() {
+  const [liters, setLiters]         = useState("");
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [monthlyAvg, setMonthlyAvg] = useState(0);
+  const [loading, setLoading]       = useState(false);
+  const [adding, setAdding]         = useState(false);
+  const [message, setMessage]       = useState("");
+
+  async function fetchData() {
+    setLoading(true);
+    try {
+      const data = await getWeeklyMilk();
+      if (data.success) {
+        setWeeklyData(data.weekly);
+        setMonthlyAvg(data.monthly_average);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { fetchData(); }, []);
+
+  async function handleAdd() {
+    const val = parseFloat(liters);
+    if (!liters || isNaN(val) || val <= 0) {
+      setMessage("Please enter a valid number of liters.");
+      return;
+    }
+    setAdding(true);
+    setMessage("");
+    try {
+      const res = await addMilkEntry(val);
+      if (res.success) {
+        setLiters("");
+        setMessage(`✅ Saved ${val}L for today!`);
+        await fetchData();
+      } else {
+        setMessage("Error: " + (res.error || "Could not save"));
+      }
+    } catch (e) {
+      setMessage("Network error: " + e.message);
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  const maxVal = Math.max(...weeklyData.map((d) => d.liters), 1);
+  const todayStr = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="milk-page">
-      <header className="header">
-        <div>
-          <p>Production</p>
-          <h1>Milk Tracking</h1>
-        </div>
-        <Droplets size={36} color="#0077b6" />
-      </header>
+    <div className="page-container">
+      <p className="page-label">Production</p>
+      <h1 className="page-title">Milk Tracking</h1>
 
-      {/* Quick Add */}
-      <div className="card" style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
-        <input 
-          type="number" 
-          placeholder="Liters" 
-          value={liters}
-          onChange={(e) => setLiters(e.target.value)}
-          style={{flex: 1, padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid #ccc', fontSize: '1.2rem'}}
-        />
-        <button className="btn btn-primary" onClick={handleLog} style={{padding: '12px 16px', borderRadius: 'var(--radius-sm)'}}>
-          <PlusCircle size={24} /> Add
-        </button>
+      {/* Add Entry */}
+      <div className="card">
+        <div className="add-row">
+          <input
+            className="liters-input"
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="Enter liters..."
+            value={liters}
+            onChange={(e) => setLiters(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          />
+          <button
+            className="add-btn"
+            onClick={handleAdd}
+            disabled={adding}
+          >
+            {adding ? <span className="spinner" /> : "+ Add"}
+          </button>
+        </div>
+        {message && (
+          <p className={message.startsWith("✅") ? "msg-success" : "msg-error"}>
+            {message}
+          </p>
+        )}
       </div>
 
-      {/* Weekly Graph Mockup */}
-      <h2>Weekly Yield (Total)</h2>
-      <div className="card" style={{height: '240px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '24px 12px 12px'}}>
-        {[45, 48, 42, 50, 46, 44, 49].map((val, idx) => (
-          <div key={idx} style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-            <div style={{
-              height: `${(val / 60) * 150}px`, 
-              width: '24px', 
-              backgroundColor: idx === 6 ? '#0077b6' : 'var(--color-secondary)',
-              borderRadius: '4px 4px 0 0',
-              transition: 'height 0.3s ease'
-            }}></div>
-            <span style={{fontSize: '0.75rem', marginTop: '8px', color: 'var(--color-text-muted)'}}>
-              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][idx]}
-            </span>
+      {/* Bar Chart */}
+      <div className="card">
+        <h2 className="card-title">Weekly Yield (Total)</h2>
+        {loading ? (
+          <div className="loading-wrap">
+            <span className="spinner dark" /> Loading...
           </div>
-        ))}
+        ) : (
+          <div className="chart-area">
+            {weeklyData.map((d) => {
+              const isToday = d.date === todayStr;
+              const heightPct = d.liters > 0 ? (d.liters / maxVal) * 100 : 2;
+              return (
+                <div key={d.date} className="bar-col">
+                  {d.liters > 0 && (
+                    <span className="bar-label">{d.liters}L</span>
+                  )}
+                  <div
+                    className={`bar ${isToday ? "bar-today" : "bar-normal"}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                  <span className={`day-label ${isToday ? "day-today" : ""}`}>
+                    {d.day}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="card" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-          <BarChart3 size={24} color="var(--color-primary-dark)" />
-          <h3>Monthly Average</h3>
+      {/* Monthly Average */}
+      <div className="avg-card">
+        <div className="avg-left">
+          <span className="avg-icon">📊</span>
+          <span className="avg-label">Monthly Average</span>
         </div>
-        <h2 style={{color: '#0077b6'}}>46 L / day</h2>
+        <span className="avg-value">{monthlyAvg} L / day</span>
       </div>
     </div>
   );
-};
-
-export default MilkProduction;
+}

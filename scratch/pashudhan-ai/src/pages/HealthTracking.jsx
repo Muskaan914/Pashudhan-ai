@@ -1,82 +1,138 @@
-import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, Activity, HeartPulse } from 'lucide-react';
+// src/pages/HealthPage.jsx
+import { useState } from "react";
+import { analyzeSymptoms } from "../services/api";
+import "./HealthPage.css";
 
-const HealthTracking = () => {
-  const [symptom, setSymptom] = useState('');
-  const [prediction, setPrediction] = useState(null);
+const SEVERITY_COLOR = {
+  mild:     { bg: "#E8F5E9", color: "#2E7D32" },
+  moderate: { bg: "#FFF3E0", color: "#E65100" },
+  severe:   { bg: "#FFEBEE", color: "#C62828" },
+};
 
-  const handlePredict = () => {
-    if (!symptom) return;
-    setPrediction({
-      disease: 'Foot and Mouth Disease (Suspected)',
-      confidence: '85%',
-      advice: 'Isolate the animal immediately. Contact local vet. Apply mild antiseptic to visible sores.'
-    });
-  };
+export default function HealthPage() {
+  const [symptoms, setSymptoms] = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [result, setResult]     = useState(null);
+  const [error, setError]       = useState("");
+
+  async function handleAnalyze() {
+    if (!symptoms.trim()) { setError("Please enter symptoms first."); return; }
+    setError("");
+    setLoading(true);
+    setResult(null);
+    try {
+      const data = await analyzeSymptoms(symptoms);
+      if (data.success) setResult(data);
+      else setError(data.error || "Analysis failed. Try again.");
+    } catch (e) {
+      setError("Network error: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const sevStyle = result ? SEVERITY_COLOR[result.severity] || SEVERITY_COLOR.mild : {};
 
   return (
-    <div className="health-page">
-      <header className="header" style={{ marginBottom: '16px' }}>
-        <div>
-          <p>Health Management</p>
-          <h1>Livestock Health</h1>
-        </div>
-        <HeartPulse size={36} color="var(--color-primary)" />
-      </header>
+    <div className="page-container">
+      <p className="page-label">Health Management</p>
+      <h1 className="page-title">Livestock Health</h1>
 
-      {/* Symptom Checker */}
+      {/* Symptom Checker Card */}
       <div className="card">
-        <h2>AI Symptom Checker</h2>
-        <p style={{marginBottom: '12px'}}>Enter observed symptoms (e.g., limping, fever, reduced milk):</p>
-        <textarea 
+        <h2 className="card-title">AI Symptom Checker</h2>
+        <p className="card-sub">Enter observed symptoms (e.g., limping, fever, reduced milk):</p>
+        <textarea
+          className="symptom-input"
+          rows={4}
           placeholder="e.g. My buffalo has blisters on its mouth and is not eating..."
-          value={symptom}
-          onChange={(e) => setSymptom(e.target.value)}
-          style={{
-            width: '100%', height: '80px', padding: '12px', 
-            borderRadius: 'var(--radius-sm)', border: '1px solid #ccc',
-            marginBottom: '12px', fontFamily: 'inherit'
-          }}
+          value={symptoms}
+          onChange={(e) => setSymptoms(e.target.value)}
         />
-        <button className="btn btn-primary" style={{width: '100%'}} onClick={handlePredict}>
-          <Activity size={20} />
-          Analyze Symptoms
+        {error && <p className="error-msg">{error}</p>}
+        <button
+          className="primary-btn"
+          onClick={handleAnalyze}
+          disabled={loading}
+        >
+          {loading ? (
+            <span className="spinner-wrap"><span className="spinner" /> Analyzing...</span>
+          ) : (
+            "⚡ Analyze Symptoms"
+          )}
         </button>
-
-        {prediction && (
-          <div style={{marginTop: '16px', padding: '16px', backgroundColor: 'var(--color-accent-light)', borderRadius: 'var(--radius-sm)'}}>
-            <h3 style={{color: '#b05d46', display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <AlertTriangle size={20}/>
-              {prediction.disease}
-            </h3>
-            <p style={{margin: '8px 0'}}><strong>Confidence:</strong> {prediction.confidence}</p>
-            <p><strong>Action:</strong> {prediction.advice}</p>
-          </div>
-        )}
       </div>
 
-      <h2>Recent Health Log</h2>
+      {/* Results Card */}
+      {result && (
+        <div className="card result-card">
+          <div
+            className="severity-badge"
+            style={{ background: sevStyle.bg, color: sevStyle.color }}
+          >
+            {result.severity?.toUpperCase()} SEVERITY
+          </div>
+
+          <Section title="Possible Conditions">
+            {result.possible_conditions?.map((c, i) => (
+              <p key={i} className="bullet">• {c}</p>
+            ))}
+          </Section>
+
+          <Section title="Immediate Actions">
+            {result.immediate_actions?.map((a, i) => (
+              <p key={i} className="bullet">• {a}</p>
+            ))}
+          </Section>
+
+          {result.medicines?.length > 0 && (
+            <Section title="Suggested Medicines">
+              {result.medicines.map((m, i) => (
+                <p key={i} className="bullet">• {m}</p>
+              ))}
+            </Section>
+          )}
+
+          <Section title="When to Call Vet">
+            <p className="body-text">{result.when_to_call_vet}</p>
+          </Section>
+
+          <Section title="Prevention">
+            <p className="body-text">{result.prevention}</p>
+          </Section>
+        </div>
+      )}
+
+      {/* Health Log */}
+      <h2 className="section-header">Recent Health Log</h2>
       <div className="card">
-        <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
-          <CheckCircle color="green" size={24} />
-          <div>
-            <h3>Cow #4 (Gauri)</h3>
-            <p>FMD Vaccination completed</p>
-            <p style={{fontSize: '0.8rem', marginTop: '4px'}}>2 days ago</p>
-          </div>
-        </div>
-        <hr style={{margin: '12px 0', border: 'none', borderTop: '1px solid #eee'}} />
-        <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
-          <Activity color="orange" size={24} />
-          <div>
-            <h3>Buffalo #2 (Murrah)</h3>
-            <p>Monitored for low milk yield</p>
-            <p style={{fontSize: '0.8rem', marginTop: '4px'}}>Yesterday</p>
-          </div>
-        </div>
+        <LogItem icon="✅" name="Cow #4 (Gauri)"
+          event="FMD Vaccination completed" when="2 days ago" />
+        <LogItem icon="⚠️" name="Buffalo #2 (Murrah)"
+          event="Monitored for low milk yield" when="Yesterday" />
       </div>
     </div>
   );
-};
+}
 
-export default HealthTracking;
+function Section({ title, children }) {
+  return (
+    <div className="result-section">
+      <p className="result-section-title">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function LogItem({ icon, name, event, when }) {
+  return (
+    <div className="log-item">
+      <span className="log-icon">{icon}</span>
+      <div>
+        <p className="log-name">{name}</p>
+        <p className="log-event">{event}</p>
+        <p className="log-when">{when}</p>
+      </div>
+    </div>
+  );
+}

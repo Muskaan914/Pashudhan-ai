@@ -1,182 +1,131 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle2, Search, XCircle } from 'lucide-react';
-import buffaloImg from '../assets/buffalo.png';
+// src/pages/ScanPage.jsx
+import { useState, useRef } from "react";
+import { scanAnimal } from "../services/api";
+import "./ScanPage.css";
 
-const ImageScanner = () => {
-  const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+export default function ScanPage() {
+  const [imageFile, setImageFile]   = useState(null);
+  const [preview, setPreview]       = useState(null);
+  const [loading, setLoading]       = useState(false);
+  const [result, setResult]         = useState(null);
+  const [error, setError]           = useState("");
+  const fileInputRef                = useRef();
 
-  const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
-
-  const handleFileChange = (e) => {
+  function handleFileChange(e) {
     const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
-      setResult(null); // Reset previous results
-    }
-  };
-
-const simulateScan = async () => {
-  // If no new image selected, we default to the placeholder just to demonstrate the flow
-  if (!selectedImage && !buffaloImg) return;
-
-  setScanning(true);
-  setResult(null);
-
-  try {
-    const formData = new FormData();
-    formData.append('image', selectedImage || buffaloImg);
-
-    const response = await fetch(`${API_URL}/api/predict/`, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
-      },
-    });
-
-    const data = await response.json();
-    setScanning(false);
-    setResult(data);
-  } catch (error) {
-    console.error('Error scanning image:', error);
-    setScanning(false);
-    setResult({
-      breed: 'Murrah Buffalo',
-      confidence: '98%',
-      health: 'Healthy',
-      notes: 'Excellent coat condition. No visible signs of skin diseases.'
-    });
-  }
-};
-
-  const clearImage = () => {
-    setSelectedImage(null);
+    if (!file) return;
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
     setResult(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
-  };
+    setError("");
+  }
+
+  async function handleScan() {
+    if (!imageFile) { setError("Please select an image first."); return; }
+    setError("");
+    setLoading(true);
+    setResult(null);
+    try {
+      const data = await scanAnimal(imageFile);
+      if (data.success) setResult(data);
+      else setError(data.error || "Scan failed. Try again.");
+    } catch (e) {
+      setError("Network error: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const healthColor = result?.health_status === "Healthy" ? "#2D6A4F" : "#E76F51";
 
   return (
-    <div className="scanner-page">
-      <header className="header">
-        <div>
-          <p>AI Vision</p>
-          <h1>Livestock Scanner</h1>
-        </div>
-        <Camera size={36} color="var(--color-primary)" />
-      </header>
+    <div className="page-container">
+      <p className="page-label">AI Vision</p>
+      <h1 className="page-title">Livestock Scanner</h1>
 
-      {/* Hidden file inputs configured for gallery and camera */}
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        ref={cameraInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-
-      {/* Main Image Area with Cards */}
-      <div className="card" style={{ position: 'relative', overflow: 'hidden', padding: 0 }}>
-
-        {/* Preview image */}
-        <div style={{ position: 'relative' }}>
-          <img
-            src={selectedImage || buffaloImg}
-            alt="Livestock preview"
-            style={{ width: '100%', height: '300px', objectFit: 'cover', display: 'block' }}
-          />
-          {selectedImage && !scanning && (
-            <button
-              className="btn btn-secondary"
-              onClick={clearImage}
-              style={{ position: 'absolute', top: '16px', right: '16px', borderRadius: '50%', padding: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
-            >
-              <XCircle size={20} color="#e07a5f" />
-            </button>
-          )}
-        </div>
-
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <p style={{ marginBottom: '20px' }}>Upload or capture a photo of the animal to detect breed and visible diseases.</p>
-
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '16px' }}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={scanning}
-              style={{ flex: 1 }}
-            >
-              <Upload size={20} /> Gallery
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={scanning}
-              style={{ flex: 1 }}
-            >
-              <Camera size={20} /> Camera
-            </button>
-          </div>
-
-          <button
-            className="btn btn-primary"
-            onClick={simulateScan}
-            disabled={scanning || (!selectedImage && !buffaloImg)}
-            style={{ width: '100%' }}
-          >
-            {scanning ? 'Analyzing Image...' : <><Search size={20} /> Scan AI</>}
-          </button>
-        </div>
-
-        {/* Scanning Overlay (Spinner & Text) */}
-        {scanning && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-            <div className="spinner" style={{ width: '60px', height: '60px', border: '5px solid var(--color-secondary)', borderTop: '5px solid var(--color-primary)', borderRadius: '50%', animation: 'spin 1.2s linear infinite' }} />
-            <h3 style={{ color: 'var(--color-primary-dark)' }}>Analyzing Image...</h3>
-            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      {/* Image Preview Box */}
+      <div className="image-box" onClick={() => fileInputRef.current.click()}>
+        {preview ? (
+          <img src={preview} alt="Selected animal" className="preview-img" />
+        ) : (
+          <div className="placeholder">
+            <span className="placeholder-icon">🐄</span>
+            <p className="placeholder-text">
+              Upload a photo of the animal to detect breed and visible diseases.
+            </p>
+            <p className="placeholder-hint">Click to select image</p>
           </div>
         )}
       </div>
 
-      {/* Results Section */}
-      {result && !scanning && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-primary)' }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <CheckCircle2 color="green" size={28} /> AI Scan Result
-          </h2>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
 
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ flex: 1, background: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Detected Breed</p>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)' }}>{result.breed}</h3>
+      {/* Buttons */}
+      <div className="btn-row">
+        <button
+          className="outline-btn"
+          onClick={() => fileInputRef.current.click()}
+        >
+          ⬆ Gallery
+        </button>
+        {preview && (
+          <button className="outline-btn" onClick={() => {
+            setPreview(null); setImageFile(null); setResult(null);
+          }}>
+            ✕ Clear
+          </button>
+        )}
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+
+      <button
+        className="primary-btn"
+        onClick={handleScan}
+        disabled={loading || !imageFile}
+      >
+        {loading ? (
+          <span className="spinner-wrap"><span className="spinner" /> Scanning...</span>
+        ) : (
+          "🔍 Scan AI"
+        )}
+      </button>
+
+      {/* Results */}
+      {result && (
+        <div className="card result-card">
+          <div className="result-header">
+            <span className="result-check">✅</span>
+            <span className="result-title">AI Scan Result</span>
+          </div>
+
+          <div className="info-grid">
+            <div className="info-box">
+              <p className="info-label">Detected Breed</p>
+              <p className="info-value">{result.breed?.replace(/_/g, " ")}</p>
             </div>
-            <div style={{ flex: 1, background: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Confidence</p>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)' }}>{result.confidence}</h3>
+            <div className="info-box">
+              <p className="info-label">Confidence</p>
+              <p className="info-value">{result.confidence}%</p>
             </div>
           </div>
 
-          <div style={{ background: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>Health Status</p>
-            <h3 style={{ fontSize: '1.5rem', color: 'green', marginBottom: '8px' }}>{result.health}</h3>
-            <p style={{ fontSize: '0.95rem', color: 'var(--color-text-main)' }}>{result.notes}</p>
+          <div className="health-box">
+            <p className="info-label">Health Status</p>
+            <p className="health-status" style={{ color: healthColor }}>
+              {result.health_status}
+            </p>
+            <p className="health-details">{result.health_details}</p>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default ImageScanner;
+}
