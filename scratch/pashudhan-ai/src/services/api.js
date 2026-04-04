@@ -1,12 +1,17 @@
 // src/services/api.js
-// Scan + Symptoms → Google Gemini API (FREE)
+// Scan (Roboflow) + Health Analysis (Gemini) + Symptoms (Gemini) → APIs
 // Milk → Render backend
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const ROBOFLOW_API_KEY = import.meta.env.VITE_ROBOFLOW_API_KEY;
+const ROBOFLOW_PROJECT = "cattle-breed-detection";
+const ROBOFLOW_VERSION = "1";
+
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const ROBOFLOW_URL = `https://detect.roboflow.com/${ROBOFLOW_PROJECT}/${ROBOFLOW_VERSION}`;
 const BACKEND_URL = "https://pashudhan-ai-backend-2.onrender.com";
 
-// ── 1. Breed Scan ──────────────────────────────────────────────────────────
+// ── 1. Breed Scan (Roboflow + Gemini Health Analysis) ──────────────────────
 export async function scanAnimal(imageFile) {
   const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -15,50 +20,92 @@ export async function scanAnimal(imageFile) {
     reader.readAsDataURL(imageFile);
   });
 
-  const res = await fetch(GEMINI_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          {
-            inline_data: {
-              mime_type: imageFile.type || "image/jpeg",
-              data: base64,
-            },
-          },
-          {
-            text: 'You are a livestock expert. Look at this image carefully. Is it a COW or BUFFALO? Identify the exact breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole. Reply ONLY with valid JSON, no markdown, no extra text: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence about coat and body condition"}',
-          },
-        ],
-      }],
-      generationConfig: { maxOutputTokens: 150, temperature: 0.1 },
-    }),
-  });
+  let breedResult = null;
+  let healthResult = null;
 
-  const data = await res.json();
+  // Step 1: Try Roboflow for breed detection (specialized livestock model)
+  if (ROBOFLOW_API_KEY) {
+    try {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      formData.append("api_key", ROBOFLOW_API_KEY);
+
+      const roboRes = await fetch(ROBOFLOW_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (roboRes.ok) {
+        const roboData = await roboRes.json();
+        if (roboData.predictions && roboData.predictions.length > 0) {
+          const prediction = roboData.predictions[0];
+          breedResult = {
+            breed: prediction.class || "Unknown Cattle Breed",
+            confidence: Math.round(prediction.confidence * 100),
+            source: "Roboflow Specialized Model",
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Roboflow API error, falling back to Gemini:", e);
+    }
+  }
+
+  // Step 2: Use Gemini for health analysis and as fallback for breed
+  const geminiPrompt = breedResult
+    ? `Analyze this livestock image for health indicators. The detected breed is ${breedResult.breed}. Provide a JSON response: {"health_status": "Healthy/Concerning/Sick", "health_details": "2-3 sentences about coat condition, body score, visible signs", "observations": "any visible health concerns"}`
+    : `You are a livestock expert specializing in Indian cattle and buffalo breeds. Analyze this image and provide JSON: {"breed": "exact breed name from: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole, etc.", "confidence": 85, "health_status": "Healthy/Concerning/Sick", "health_details": "2-3 sentences about visible health indicators"}`;
 
   try {
-    const raw = data.candidates[0].content.parts[0].text
+    const geminiRes = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: imageFile.type || "image/jpeg",
+                data: base64,
+              },
+            },
+            {
+              text: geminiPrompt + ". Reply ONLY with valid JSON, no markdown, no extra text.",
+            },
+          ],
+        }],
+        generationConfig: { maxOutputTokens: 200, temperature: 0.2 },
+      }),
+    });
+
+    const geminiData = await geminiRes.json();
+    const raw = geminiData.candidates[0].content.parts[0].text
       .trim()
       .replace(/```json|```/g, "")
       .trim();
-    
+
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found");
-    
-    const result = JSON.parse(jsonMatch[0]);
-    return {
-      success: true,
-      breed: result.breed || "Unknown",
-      confidence: result.confidence || 85,
-      health_status: result.health_status || "Healthy",
-      health_details: result.health_details || "No visible issues detected.",
-    };
+    if (jsonMatch) {
+      healthResult = JSON.parse(jsonMatch[0]);
+    }
   } catch (e) {
-    console.error("Parse error:", e);
-    return { success: false, error: "Could not analyze image. Try again." };
+    console.error("Gemini analysis error:", e);
   }
+
+  // Combine results
+  const finalBreed = breedResult?.breed || healthResult?.breed || "Unknown";
+  const finalConfidence = breedResult?.confidence || healthResult?.confidence || 75;
+  const healthStatus = healthResult?.health_status || "Unknown";
+  const healthDetails = healthResult?.health_details || healthResult?.observations || "Could not fully analyze. Please consult a veterinarian.";
+
+  return {
+    success: true,
+    breed: finalBreed,
+    confidence: finalConfidence,
+    health_status: healthStatus,
+    health_details: healthDetails,
+    detection_source: breedResult?.source || "Gemini Vision Analysis",
+  };
 }
 
 // ── 2. Symptom Analysis ────────────────────────────────────────────────────

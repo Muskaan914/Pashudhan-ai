@@ -130,6 +130,20 @@ export default function ScanPage() {
             </p>
             <p className="health-details">{result.health_details}</p>
           </div>
+
+          {result.detection_source && (
+            <div className="detection-source">
+              <p className="source-label">Detection Method</p>
+              <p className="source-value">{result.detection_source}</p>
+            </div>
+          )}
+
+          {result.health_status === "Concerning" || result.health_status === "Sick" ? (
+            <div className="warning-box">
+              <p className="warning-title">⚠️ Health Alert</p>
+              <p className="warning-text">This animal may need veterinary attention. Please consult a qualified veterinarian for proper diagnosis and treatment.</p>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
