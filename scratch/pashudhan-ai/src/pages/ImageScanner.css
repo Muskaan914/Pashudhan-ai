@@ -44,21 +44,21 @@
 }
 
 /* 🔥 NEW PLACEHOLDER (CLEAN + PREMIUM) */
+/* Fix height + aspect ratio */
 .placeholder {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 270px; /* 👈 reduce height */
 }
 
-/* Image */
+/* Better image fit */
 .full-placeholder-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* keeps it clean */
   border-radius: 16px;
-  filter: brightness(0.8);
+  filter: brightness(0.85);
 }
-
 /* Overlay text */
 .overlay {
   position: absolute;
@@ -78,7 +78,10 @@
     rgba(0,0,0,0.2),
     transparent
   );
-
+.image-box:hover .full-placeholder-image {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+}
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
 }
