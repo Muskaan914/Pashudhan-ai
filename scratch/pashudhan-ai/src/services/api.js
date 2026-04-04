@@ -1,10 +1,6 @@
-// src/services/api.js
-// Scan + Symptoms → Google Gemini API (FREE)
-// Milk → Render backend
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-const BACKEND_URL = "https://pashudhan-ai-backend-2.onrender.com";
+// src/services/api.js — No backend needed!
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
 // ── 1. Breed Scan ──────────────────────────────────────────────────────────
 export async function scanAnimal(imageFile) {
@@ -21,15 +17,8 @@ export async function scanAnimal(imageFile) {
     body: JSON.stringify({
       contents: [{
         parts: [
-          {
-            inline_data: {
-              mime_type: imageFile.type || "image/jpeg",
-              data: base64,
-            },
-          },
-          {
-            text: 'You are a livestock expert. Look at this image carefully. Is it a COW or BUFFALO? Identify the exact breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole. Reply ONLY with valid JSON, no markdown, no extra text: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence about coat and body condition"}',
-          },
+          { inline_data: { mime_type: imageFile.type || "image/jpeg", data: base64 } },
+          { text: 'You are a livestock expert. Identify this animal breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole. Reply ONLY with valid JSON: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence about coat and body condition"}' },
         ],
       }],
       generationConfig: { maxOutputTokens: 150, temperature: 0.1 },
@@ -37,28 +26,12 @@ export async function scanAnimal(imageFile) {
   });
 
   const data = await res.json();
-
   try {
-    const raw = data.candidates[0].content.parts[0].text
-      .trim()
-      .replace(/```json|```/g, "")
-      .trim();
-    
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found");
-    
-    const result = JSON.parse(jsonMatch[0]);
-    return {
-      success: true,
-      breed: result.breed || "Unknown",
-      confidence: result.confidence || 85,
-      health_status: result.health_status || "Healthy",
-      health_details: result.health_details || "No visible issues detected.",
-    };
-  } catch (e) {
-    if (data && data.error && data.error.code === 429) {
-      return { success: false, error: "Too many requests. Wait 10 seconds and try again." };
-    }
+    const raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
+    const result = JSON.parse(raw);
+    return { success: true, breed: result.breed || "Unknown", confidence: result.confidence || 85, health_status: result.health_status || "Healthy", health_details: result.health_details || "No visible issues." };
+  } catch {
+    if (data.error?.code === 429) return { success: false, error: "Too many requests. Wait 30 seconds and try again." };
     return { success: false, error: "Could not analyze image. Try again." };
   }
 }
@@ -71,10 +44,7 @@ export async function analyzeSymptoms(symptomsText) {
     body: JSON.stringify({
       contents: [{
         parts: [{
-          text: `You are an expert AI veterinarian for Indian livestock (cattle, buffalo, goat).
-A farmer says: "${symptomsText}"
-Reply ONLY with valid JSON, no markdown:
-{"possible_conditions": ["condition1", "condition2"], "severity": "mild", "immediate_actions": ["action1", "action2"], "medicines": ["medicine (dosage)"], "when_to_call_vet": "explanation", "prevention": "tip"}`,
+          text: `You are an expert AI veterinarian for Indian livestock. Farmer says: "${symptomsText}". Reply ONLY with valid JSON: {"possible_conditions": ["condition1", "condition2"], "severity": "mild", "immediate_actions": ["action1", "action2"], "medicines": ["medicine (dosage)"], "when_to_call_vet": "explanation", "prevention": "tip"}`,
         }],
       }],
       generationConfig: { maxOutputTokens: 500, temperature: 0.2 },
@@ -82,30 +52,42 @@ Reply ONLY with valid JSON, no markdown:
   });
 
   const data = await res.json();
-
   try {
-    const raw = data.candidates[0].content.parts[0].text
-      .trim().replace(/```json|```/g, "").trim();
-    const result = JSON.parse(raw);
-    return { success: true, ...result };
-  } catch (e) {
+    const raw = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
+    return { success: true, ...JSON.parse(raw) };
+  } catch {
+    if (data.error?.code === 429) return { success: false, error: "Too many requests. Wait 30 seconds and try again." };
     return { success: false, error: "Could not analyze symptoms. Try again." };
   }
 }
 
-// ── 3. Milk Tracking (Render backend) ─────────────────────────────────────
+// ── 3. Milk Tracking (localStorage — no backend needed) ───────────────────
 export async function addMilkEntry(liters) {
-  const res = await fetch(`${BACKEND_URL}/api/milk/add/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ liters: parseFloat(liters) }),
-  });
-  if (!res.ok) throw new Error(`Server error: ${res.status}`);
-  return res.json();
+  const today = new Date().toISOString().split("T")[0];
+  const data = JSON.parse(localStorage.getItem("milk_data") || "{}");
+  data[today] = parseFloat(liters);
+  localStorage.setItem("milk_data", JSON.stringify(data));
+  return { success: true, date: today, liters: parseFloat(liters) };
 }
 
 export async function getWeeklyMilk() {
-  const res = await fetch(`${BACKEND_URL}/api/milk/weekly/`);
-  if (!res.ok) throw new Error(`Server error: ${res.status}`);
-  return res.json();
+  const data = JSON.parse(localStorage.getItem("milk_data") || "{}");
+  const today = new Date();
+  const weekly = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    weekly.push({ date: dateStr, day: days[d.getDay()], liters: data[dateStr] || 0 });
+  }
+
+  const last30 = Object.keys(data)
+    .filter(k => k >= new Date(today.getTime() - 30*24*60*60*1000).toISOString().split("T")[0])
+    .map(k => data[k]);
+
+  const monthly_average = last30.length ? Math.round(last30.reduce((a,b) => a+b, 0) / last30.length * 10) / 10 : 0;
+
+  return { success: true, weekly, monthly_average };
 }
