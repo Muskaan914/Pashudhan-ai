@@ -1,6 +1,7 @@
 // src/pages/ScanPage.jsx
 import { useState, useRef } from "react";
 import { scanAnimal } from "../services/api";
+import buffaloImg from "../assets/buffalo.png";   
 import "./ImageScanner.css";
 
 export default function ScanPage() {
@@ -43,20 +44,25 @@ export default function ScanPage() {
       <p className="page-label">AI Vision</p>
       <h1 className="page-title">Livestock Scanner</h1>
 
-      {/* Image Preview Box */}
-      <div className="image-box" onClick={() => fileInputRef.current.click()}>
-        {preview ? (
-          <img src={preview} alt="Selected animal" className="preview-img" />
-        ) : (
-          <div className="placeholder">
-            <span className="placeholder-icon">🐄</span>
-            <p className="placeholder-text">
-              Upload a photo of the animal to detect breed and visible diseases.
-            </p>
-            <p className="placeholder-hint">Click to select image</p>
-          </div>
-        )}
-      </div>
+      <div
+  className="image-box"
+  onClick={() => fileInputRef.current.click()}
+>
+  {preview ? (
+    <img src={preview} alt="Selected animal" className="preview-img" />
+  ) : (
+    <div className="placeholder">
+      <img
+        src={buffaloImg}
+        alt="cow"
+        className="full-placeholder-image"
+      />
+      <p className="placeholder-text overlay">
+        Upload a photo of the animal to detect breed and visible diseases.
+      </p>
+    </div>
+  )}
+</div>
 
       {/* Hidden file input */}
       <input

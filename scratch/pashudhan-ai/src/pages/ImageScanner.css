@@ -1,32 +1,228 @@
 /* src/pages/ScanPage.css */
-.page-container { max-width: 600px; margin: 0 auto; padding: 24px 16px 60px; background: #F5F0E8; min-height: 100vh; }
-.page-label     { font-size: 13px; color: #888; margin-bottom: 2px; }
-.page-title     { font-size: 26px; font-weight: 700; color: #1B3A2F; margin-bottom: 16px; }
-.image-box      { width: 100%; border-radius: 16px; overflow: hidden; background: #fff; min-height: 220px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.07); display: flex; align-items: center; justify-content: center; }
-.preview-img    { width: 100%; max-height: 300px; object-fit: cover; display: block; }
-.placeholder    { text-align: center; padding: 30px 24px; }
-.placeholder-icon { font-size: 48px; display: block; margin-bottom: 12px; }
-.placeholder-text { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 8px; }
-.placeholder-hint { font-size: 12px; color: #2D6A4F; font-weight: 600; }
-.btn-row        { display: flex; gap: 10px; margin-bottom: 10px; }
-.outline-btn    { flex: 1; border: 1.5px solid #2D6A4F; border-radius: 30px; padding: 12px; font-size: 14px; font-weight: 600; color: #2D6A4F; background: #E8F5E9; cursor: pointer; transition: opacity 0.2s; }
-.outline-btn:hover { opacity: 0.85; }
-.error-msg      { color: #C62828; font-size: 13px; margin-bottom: 8px; }
-.primary-btn    { width: 100%; background: #2D6A4F; color: #fff; border: none; border-radius: 30px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 16px; transition: opacity 0.2s; }
-.primary-btn:hover    { opacity: 0.9; }
-.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.spinner-wrap   { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.spinner        { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.card           { background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
-.result-card    { }
-.result-header  { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.result-check   { font-size: 22px; }
-.result-title   { font-size: 20px; font-weight: 700; color: #1B3A2F; }
-.info-grid      { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.info-box       { background: #F5F0E8; border-radius: 12px; padding: 12px; }
-.info-label     { font-size: 11px; color: #888; margin-bottom: 4px; }
-.info-value     { font-size: 18px; font-weight: 700; color: #1B3A2F; }
-.health-box     { background: #F5F0E8; border-radius: 12px; padding: 12px; }
-.health-status  { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.health-details { font-size: 13px; color: #555; line-height: 1.5; }
+
+.page-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  background: #F5F0E8;
+  min-height: 100vh;
+}
+
+.page-label {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1B3A2F;
+  margin-bottom: 16px;
+}
+
+.image-box {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  min-height: 220px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Preview image */
+.preview-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+/* 🔥 NEW PLACEHOLDER (CLEAN + PREMIUM) */
+.placeholder {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+/* Image */
+.full-placeholder-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  filter: brightness(0.8);
+}
+
+/* Overlay text */
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px;
+
+  /* 🔥 gradient effect */
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.7),
+    rgba(0,0,0,0.2),
+    transparent
+  );
+
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Buttons */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.outline-btn {
+  flex: 1;
+  border: 1.5px solid #2D6A4F;
+  border-radius: 30px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2D6A4F;
+  background: #E8F5E9;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.outline-btn:hover {
+  opacity: 0.85;
+}
+
+/* Error */
+.error-msg {
+  color: #C62828;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Scan button */
+.primary-btn {
+  width: 100%;
+  background: #2D6A4F;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: opacity 0.2s;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loader */
+.spinner-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Result card */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.result-check {
+  font-size: 22px;
+}
+
+.result-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1B3A2F;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.info-box {
+  background: #F5F0E8;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1B3A2F;
+}
+
+.health-box {
+  background: #F5F0E8;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.health-status {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.health-details {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
