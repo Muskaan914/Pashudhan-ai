@@ -3,7 +3,7 @@
 // Milk → Render backend
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 const BACKEND_URL = "https://pashudhan-ai-backend-2.onrender.com";
 
 // ── 1. Breed Scan ──────────────────────────────────────────────────────────
@@ -40,16 +40,23 @@ export async function scanAnimal(imageFile) {
 
   try {
     const raw = data.candidates[0].content.parts[0].text
-      .trim().replace(/```json|```/g, "").trim();
-    const result = JSON.parse(raw);
+      .trim()
+      .replace(/```json|```/g, "")
+      .trim();
+    
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found");
+    
+    const result = JSON.parse(jsonMatch[0]);
     return {
-      success:        true,
-      breed:          result.breed          || "Unknown",
-      confidence:     result.confidence     || 85,
-      health_status:  result.health_status  || "Healthy",
+      success: true,
+      breed: result.breed || "Unknown",
+      confidence: result.confidence || 85,
+      health_status: result.health_status || "Healthy",
       health_details: result.health_details || "No visible issues detected.",
     };
   } catch (e) {
+    console.error("Parse error:", e);
     return { success: false, error: "Could not analyze image. Try again." };
   }
 }
