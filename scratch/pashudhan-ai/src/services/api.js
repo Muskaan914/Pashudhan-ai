@@ -56,7 +56,9 @@ export async function scanAnimal(imageFile) {
       health_details: result.health_details || "No visible issues detected.",
     };
   } catch (e) {
-    console.error("Parse error:", e);
+    if (data && data.error && data.error.code === 429) {
+      return { success: false, error: "Too many requests. Wait 10 seconds and try again." };
+    }
     return { success: false, error: "Could not analyze image. Try again." };
   }
 }
