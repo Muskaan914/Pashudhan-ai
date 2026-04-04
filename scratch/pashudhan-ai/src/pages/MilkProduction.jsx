@@ -1,7 +1,7 @@
 // src/pages/MilkPage.jsx
 import { useState, useEffect } from "react";
 import { addMilkEntry, getWeeklyMilk } from "../services/api";
-import "./MilkPage.css";
+import "./MilkProduction.css";
 
 export default function MilkPage() {
   const [liters, setLiters]         = useState("");

@@ -1,7 +1,7 @@
 // src/pages/ScanPage.jsx
 import { useState, useRef } from "react";
 import { scanAnimal } from "../services/api";
-import "./ScanPage.css";
+import "./ImageScanner.css";
 
 export default function ScanPage() {
   const [imageFile, setImageFile]   = useState(null);

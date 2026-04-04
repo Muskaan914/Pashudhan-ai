@@ -1,7 +1,7 @@
 // src/pages/HealthPage.jsx
 import { useState } from "react";
 import { analyzeSymptoms } from "../services/api";
-import "./HealthPage.css";
+import "./HealthTracking.css";
 
 const SEVERITY_COLOR = {
   mild:     { bg: "#E8F5E9", color: "#2E7D32" },
