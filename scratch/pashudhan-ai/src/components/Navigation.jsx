@@ -14,7 +14,7 @@ const Navigation = () => {
         <span>Health</span>
       </NavLink>
       <NavLink to="/scan" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <Camera className="nav-icon" style={{transform: 'scale(1.2)'}} size={28} color={({isActive}) => isActive ? 'var(--color-primary)' : 'var(--color-accent)'} />
+        <Camera className="nav-icon" style={{transform: 'scale(1.2)'}} size={28} />
         <span>Scan</span>
       </NavLink>
       <NavLink to="/milk" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
