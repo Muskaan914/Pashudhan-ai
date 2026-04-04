@@ -1,6 +1,12 @@
-const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+// src/services/api.js
+// Scan + Symptoms → Google Gemini API (FREE)
+// Milk → Render backend
+
+const GEMINI_API_KEY = "AIzaSyCQmBvF4bMehBo1KWYifReYKTTrJqBIJSQ";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const BACKEND_URL = "https://pashudhan-ai-backend-2.onrender.com";
 
+// ── 1. Breed Scan ──────────────────────────────────────────────────────────
 export async function scanAnimal(imageFile) {
   const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -9,69 +15,76 @@ export async function scanAnimal(imageFile) {
     reader.readAsDataURL(imageFile);
   });
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(GEMINI_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 150,
-      messages: [{
-        role: "user",
-        content: [
+      contents: [{
+        parts: [
           {
-            type: "image",
-            source: { type: "base64", media_type: imageFile.type || "image/jpeg", data: base64 },
+            inline_data: {
+              mime_type: imageFile.type || "image/jpeg",
+              data: base64,
+            },
           },
           {
-            type: "text",
-            text: 'You are a livestock expert. Is it a COW or BUFFALO? Identify exact breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Holstein Friesian, Jersey, Tharparkar. Reply ONLY valid JSON: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence"}',
+            text: 'You are a livestock expert. Look at this image carefully. Is it a COW or BUFFALO? Identify the exact breed. Common Indian breeds: Gir, Sahiwal, Murrah Buffalo, Surti Buffalo, Holstein Friesian, Jersey, Tharparkar, Kankrej, Ongole. Reply ONLY with valid JSON, no markdown, no extra text: {"breed": "exact breed name", "confidence": 90, "health_status": "Healthy", "health_details": "one sentence about coat and body condition"}',
           },
         ],
       }],
+      generationConfig: { maxOutputTokens: 150, temperature: 0.1 },
     }),
   });
 
   const data = await res.json();
-  const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+
   try {
+    const raw = data.candidates[0].content.parts[0].text
+      .trim().replace(/```json|```/g, "").trim();
     const result = JSON.parse(raw);
-    return { success: true, breed: result.breed || "Unknown", confidence: result.confidence || 85, health_status: result.health_status || "Healthy", health_details: result.health_details || "No issues." };
-  } catch {
-    return { success: true, breed: "Unknown", confidence: 0, health_status: "Unknown", health_details: raw };
+    return {
+      success:        true,
+      breed:          result.breed          || "Unknown",
+      confidence:     result.confidence     || 85,
+      health_status:  result.health_status  || "Healthy",
+      health_details: result.health_details || "No visible issues detected.",
+    };
+  } catch (e) {
+    return { success: false, error: "Could not analyze image. Try again." };
   }
 }
 
+// ── 2. Symptom Analysis ────────────────────────────────────────────────────
 export async function analyzeSymptoms(symptomsText) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(GEMINI_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 500,
-      system: `You are an expert AI veterinarian for Indian livestock. Reply ONLY with JSON: {"possible_conditions": ["condition1"], "severity": "mild or moderate or severe", "immediate_actions": ["action1"], "medicines": ["medicine"], "when_to_call_vet": "explanation", "prevention": "tip"}`,
-      messages: [{ role: "user", content: `Symptoms: ${symptomsText}` }],
+      contents: [{
+        parts: [{
+          text: `You are an expert AI veterinarian for Indian livestock (cattle, buffalo, goat).
+A farmer says: "${symptomsText}"
+Reply ONLY with valid JSON, no markdown:
+{"possible_conditions": ["condition1", "condition2"], "severity": "mild", "immediate_actions": ["action1", "action2"], "medicines": ["medicine (dosage)"], "when_to_call_vet": "explanation", "prevention": "tip"}`,
+        }],
+      }],
+      generationConfig: { maxOutputTokens: 500, temperature: 0.2 },
     }),
   });
 
   const data = await res.json();
-  const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+
   try {
-    return { success: true, ...JSON.parse(raw) };
-  } catch {
-    return { success: false, error: raw };
+    const raw = data.candidates[0].content.parts[0].text
+      .trim().replace(/```json|```/g, "").trim();
+    const result = JSON.parse(raw);
+    return { success: true, ...result };
+  } catch (e) {
+    return { success: false, error: "Could not analyze symptoms. Try again." };
   }
 }
 
+// ── 3. Milk Tracking (Render backend) ─────────────────────────────────────
 export async function addMilkEntry(liters) {
   const res = await fetch(`${BACKEND_URL}/api/milk/add/`, {
     method: "POST",
