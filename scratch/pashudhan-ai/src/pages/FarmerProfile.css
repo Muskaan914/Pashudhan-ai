@@ -1,0 +1,24 @@
+/* src/pages/FarmerProfile.css */
+.profile-container { max-width: 600px; margin: 0 auto; padding: 24px 16px 80px; background: #F5F0E8; min-height: 100vh; }
+.page-label { font-size: 13px; color: #888; margin-bottom: 2px; }
+.page-title { font-size: 26px; font-weight: 700; color: #1B3A2F; margin-bottom: 20px; }
+.loading-text { color: #888; text-align: center; margin-top: 40px; }
+.avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+.avatar { width: 80px; height: 80px; border-radius: 50%; background: #2D6A4F; color: #fff; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.avatar-name { font-size: 18px; font-weight: 700; color: #1B3A2F; }
+.avatar-village { font-size: 13px; color: #888; }
+.card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.card-title { font-size: 16px; font-weight: 700; color: #1B3A2F; margin-bottom: 16px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 500; }
+.field input { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-size: 14px; color: #333; background: #FAFAFA; outline: none; font-family: inherit; box-sizing: border-box; }
+.field input:focus { border-color: #2D6A4F; }
+.animal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.animal-card { background: #F5F0E8; border-radius: 12px; padding: 12px; text-align: center; }
+.animal-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+.animal-card label { display: block; font-size: 11px; color: #888; margin-bottom: 6px; }
+.animal-card input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; text-align: center; background: #fff; outline: none; box-sizing: border-box; }
+.success-msg { color: #2D6A4F; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; }
+.save-btn { width: 100%; background: #2D6A4F; color: #fff; border: none; border-radius: 30px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.save-btn:hover { opacity: 0.9; }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }

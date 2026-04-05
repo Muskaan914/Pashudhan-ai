@@ -6,6 +6,9 @@ import HealthTracking from './pages/HealthTracking';
 import ImageScanner from './pages/ImageScanner';
 import MilkProduction from './pages/MilkProduction';
 import ChatbotHelper from './pages/ChatbotHelper';
+import FarmerProfile from './pages/FarmerProfile';
+// Add this route:
+<Route path="/profile" element={<FarmerProfile />} />
 
 function App() {
   return (
