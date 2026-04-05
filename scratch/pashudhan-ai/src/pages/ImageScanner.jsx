@@ -5,28 +5,40 @@ import buffaloImg from "../assets/buffalo.png";
 import "./ImageScanner.css";
 
 export default function ScanPage() {
-  const [imageFile, setImageFile]   = useState(null);
-  const [preview, setPreview]       = useState(null);
-  const [loading, setLoading]       = useState(false);
-  const [result, setResult]         = useState(null);
-  const [error, setError]           = useState("");
-  const fileInputRef                = useRef();
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview]     = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [result, setResult]       = useState(null);
+  const [error, setError]         = useState("");
+  const fileInputRef              = useRef();
 
-  // Load last scan result on mount
+  // Load last scan result AND preview on mount
   useEffect(() => {
-    const saved = localStorage.getItem("lastScanResult");
-    if (saved) {
-      try { setResult(JSON.parse(saved)); } catch(e) {}
-    }
+    try {
+      const savedResult = localStorage.getItem("lastScanResult");
+      if (savedResult) setResult(JSON.parse(savedResult));
+
+      const savedPreview = localStorage.getItem("lastScanPreview");
+      if (savedPreview) setPreview(savedPreview);
+    } catch (e) {}
   }, []);
 
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
+
     setImageFile(file);
-    setPreview(URL.createObjectURL(file));
     setResult(null);
     setError("");
+
+    // Convert to base64 so it can be saved in localStorage
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result;
+      setPreview(base64);
+      localStorage.setItem("lastScanPreview", base64);
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleScan() {
@@ -38,7 +50,6 @@ export default function ScanPage() {
       const data = await scanAnimal(imageFile);
       if (data.success) {
         setResult(data);
-        // Save to localStorage so Dashboard + Scan page remember it
         localStorage.setItem("lastScanResult", JSON.stringify(data));
       } else {
         setError(data.error || "Scan failed. Try again.");
@@ -48,6 +59,14 @@ export default function ScanPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleClear() {
+    setPreview(null);
+    setImageFile(null);
+    setResult(null);
+    localStorage.removeItem("lastScanPreview");
+    localStorage.removeItem("lastScanResult");
   }
 
   const healthColor = result?.health_status === "Healthy" ? "#2D6A4F" : "#E76F51";
@@ -83,9 +102,7 @@ export default function ScanPage() {
           ⬆ Gallery
         </button>
         {preview && (
-          <button className="outline-btn" onClick={() => {
-            setPreview(null); setImageFile(null); setResult(null);
-          }}>
+          <button className="outline-btn" onClick={handleClear}>
             ✕ Clear
           </button>
         )}
