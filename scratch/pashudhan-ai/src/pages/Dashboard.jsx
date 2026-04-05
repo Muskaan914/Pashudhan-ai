@@ -1,7 +1,26 @@
-import React from 'react';
-import { CloudRain, Sun, Activity, Droplets } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sun, Activity, Droplets } from 'lucide-react';
+import { getWeeklyMilk } from '../services/api';
 
 const Dashboard = () => {
+  const [todayMilk, setTodayMilk] = useState(null);
+
+  useEffect(() => {
+    async function fetchMilk() {
+      try {
+        const data = await getWeeklyMilk();
+        if (data.success && data.weekly.length > 0) {
+          const todayStr = new Date().toISOString().split("T")[0];
+          const todayEntry = data.weekly.find(d => d.date === todayStr);
+          setTodayMilk(todayEntry ? todayEntry.liters : 0);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    fetchMilk();
+  }, []);
+
   return (
     <div className="dashboard-page">
       <header className="header">
@@ -30,7 +49,7 @@ const Dashboard = () => {
         </div>
         <div className="card" style={{margin: 0, textAlign: 'center'}}>
           <Droplets size={32} color="#0077b6" style={{margin: '0 auto 8px'}} />
-          <h2>45 L</h2>
+          <h2>{todayMilk === null ? '...' : `${todayMilk} L`}</h2>
           <p>Today's Milk</p>
         </div>
       </div>
