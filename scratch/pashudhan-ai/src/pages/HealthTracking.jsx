@@ -1,5 +1,5 @@
 // src/pages/HealthPage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { analyzeSymptoms } from "../services/api";
 import "./HealthTracking.css";
 
@@ -15,6 +15,17 @@ export default function HealthPage() {
   const [result, setResult]     = useState(null);
   const [error, setError]       = useState("");
 
+  // Load saved symptoms + result on mount
+  useEffect(() => {
+    try {
+      const savedSymptoms = localStorage.getItem("lastHealthSymptoms");
+      if (savedSymptoms) setSymptoms(savedSymptoms);
+
+      const savedResult = localStorage.getItem("lastHealthResult");
+      if (savedResult) setResult(JSON.parse(savedResult));
+    } catch (e) {}
+  }, []);
+
   async function handleAnalyze() {
     if (!symptoms.trim()) { setError("Please enter symptoms first."); return; }
     setError("");
@@ -22,13 +33,26 @@ export default function HealthPage() {
     setResult(null);
     try {
       const data = await analyzeSymptoms(symptoms);
-      if (data.success) setResult(data);
-      else setError(data.error || "Analysis failed. Try again.");
+      if (data.success) {
+        setResult(data);
+        localStorage.setItem("lastHealthResult", JSON.stringify(data));
+        localStorage.setItem("lastHealthSymptoms", symptoms);
+      } else {
+        setError(data.error || "Analysis failed. Try again.");
+      }
     } catch (e) {
       setError("Network error: " + e.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleClear() {
+    setSymptoms("");
+    setResult(null);
+    setError("");
+    localStorage.removeItem("lastHealthSymptoms");
+    localStorage.removeItem("lastHealthResult");
   }
 
   const sevStyle = result ? SEVERITY_COLOR[result.severity] || SEVERITY_COLOR.mild : {};
@@ -61,6 +85,14 @@ export default function HealthPage() {
             "⚡ Analyze Symptoms"
           )}
         </button>
+        {result && (
+          <button
+            onClick={handleClear}
+            style={{ width: '100%', marginTop: '10px', background: 'transparent', border: '1.5px solid #ccc', borderRadius: '30px', padding: '10px', fontSize: '14px', color: '#888', cursor: 'pointer' }}
+          >
+            ✕ Clear Results
+          </button>
+        )}
       </div>
 
       {/* Results Card */}
