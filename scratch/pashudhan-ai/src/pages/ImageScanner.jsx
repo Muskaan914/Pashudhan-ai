@@ -1,5 +1,5 @@
 // src/pages/ScanPage.jsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { scanAnimal } from "../services/api";
 import buffaloImg from "../assets/buffalo.png";   
 import "./ImageScanner.css";
@@ -11,6 +11,14 @@ export default function ScanPage() {
   const [result, setResult]         = useState(null);
   const [error, setError]           = useState("");
   const fileInputRef                = useRef();
+
+  // Load last scan result on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("lastScanResult");
+    if (saved) {
+      try { setResult(JSON.parse(saved)); } catch(e) {}
+    }
+  }, []);
 
   function handleFileChange(e) {
     const file = e.target.files[0];
@@ -28,8 +36,13 @@ export default function ScanPage() {
     setResult(null);
     try {
       const data = await scanAnimal(imageFile);
-      if (data.success) setResult(data);
-      else setError(data.error || "Scan failed. Try again.");
+      if (data.success) {
+        setResult(data);
+        // Save to localStorage so Dashboard + Scan page remember it
+        localStorage.setItem("lastScanResult", JSON.stringify(data));
+      } else {
+        setError(data.error || "Scan failed. Try again.");
+      }
     } catch (e) {
       setError("Network error: " + e.message);
     } finally {
@@ -44,27 +57,19 @@ export default function ScanPage() {
       <p className="page-label">AI Vision</p>
       <h1 className="page-title">Livestock Scanner</h1>
 
-      <div
-  className="image-box"
-  onClick={() => fileInputRef.current.click()}
->
-  {preview ? (
-    <img src={preview} alt="Selected animal" className="preview-img" />
-  ) : (
-    <div className="placeholder">
-      <img
-        src={buffaloImg}
-        alt="cow"
-        className="full-placeholder-image"
-      />
-      <p className="placeholder-text overlay">
-        Upload a photo of the animal to detect breed and visible diseases.
-      </p>
-    </div>
-  )}
-</div>
+      <div className="image-box" onClick={() => fileInputRef.current.click()}>
+        {preview ? (
+          <img src={preview} alt="Selected animal" className="preview-img" />
+        ) : (
+          <div className="placeholder">
+            <img src={buffaloImg} alt="cow" className="full-placeholder-image" />
+            <p className="placeholder-text overlay">
+              Upload a photo of the animal to detect breed and visible diseases.
+            </p>
+          </div>
+        )}
+      </div>
 
-      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -73,12 +78,8 @@ export default function ScanPage() {
         onChange={handleFileChange}
       />
 
-      {/* Buttons */}
       <div className="btn-row">
-        <button
-          className="outline-btn"
-          onClick={() => fileInputRef.current.click()}
-        >
+        <button className="outline-btn" onClick={() => fileInputRef.current.click()}>
           ⬆ Gallery
         </button>
         {preview && (
@@ -104,7 +105,6 @@ export default function ScanPage() {
         )}
       </button>
 
-      {/* Results */}
       {result && (
         <div className="card result-card">
           <div className="result-header">
