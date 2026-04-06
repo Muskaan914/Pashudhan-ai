@@ -456,9 +456,10 @@ const BREED_DATABASE = {
 
 // ── Keywords for invalid image detection ──────────────────────────────────
 const INVALID_KEYWORDS = [
-  "human", "person", "people", "man", "woman", "face", "dog", "cat",
-  "bird", "horse", "sheep", "goat", "pig", "chicken", "car", "building",
-  "tree", "flower", "food", "landscape", "sky", "ocean", "city"
+  "human", "person", "people", "man", "woman", "girl", "boy", "face",
+  "selfie", "portrait", "dog", "cat", "bird", "horse", "sheep", "goat",
+  "pig", "chicken", "car", "building", "tree", "flower", "food",
+  "landscape", "sky", "ocean", "city", "screenshot",
 ];
 
 // ── File name to breed map (for demo mode) ────────────────────────────────
@@ -472,11 +473,67 @@ const FILENAME_BREED_MAP = {
   "cattle1.jpg": "Jersey",
 };
 
-// ── 1. Breed Scan ──────────────────────────────────────────────────────────
-export async function scanAnimal(imageFile) {
-  await new Promise(r => setTimeout(r, 2000));
+const HIGH_ACCURACY_BREEDS = [
+  "Holstein_Friesian", "Gir", "Brown_Swiss", "Bargur", "Dangi",
+  "Alambadi", "Ayrshire", "Sahiwal", "Jaffrabadi", "Rathi",
+  "Murrah", "Kankrej", "Jersey",
+];
 
-  // Check for obviously invalid files by name hints
+// ─────────────────────────────────────────────────────────────────────────────
+// REPLACE ONLY the scanAnimal function in your existing api.js
+// Keep everything else (BREED_DATABASE, analyzeSymptoms, milk functions) the same
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
+
+// ── Step 1: Validate image with Gemini (is it cattle/buffalo?) ────────────
+async function validateImageWithGemini(imageFile) {
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(imageFile);
+    });
+
+    const res = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: imageFile.type || "image/jpeg",
+                data: base64,
+              },
+            },
+            {
+              text: "Does this image show a cattle (cow) or buffalo? Reply with ONLY 'yes' or 'no'. Nothing else.",
+            },
+          ],
+        }],
+        generationConfig: { maxOutputTokens: 5, temperature: 0 },
+      }),
+    });
+
+    const data = await res.json();
+    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
+    return answer === "yes";
+  } catch (e) {
+    // If Gemini fails → allow through (don't block user)
+    return true;
+  }
+}
+
+// ── Main scanAnimal function ───────────────────────────────────────────────
+export async function scanAnimal(imageFile) {
+  // Simulate processing delay
+  await new Promise(r => setTimeout(r, 1500));
+
+  // Step 1: Quick filename keyword check
   const nameLower = imageFile.name.toLowerCase();
   const likelyInvalid = INVALID_KEYWORDS.some(k => nameLower.includes(k));
   if (likelyInvalid) {
@@ -487,20 +544,25 @@ export async function scanAnimal(imageFile) {
     };
   }
 
-  // Match known demo files
+  // Step 2: Real Gemini validation (is this actually a cattle/buffalo?)
+  const isCattle = await validateImageWithGemini(imageFile);
+  if (!isCattle) {
+    return {
+      success: false,
+      invalid: true,
+      error: "❌ This image does not appear to be a cattle or buffalo. Please upload a clear photo of livestock only.",
+    };
+  }
+
+  // Step 3: Match known demo files → exact breed
   if (FILENAME_BREED_MAP[imageFile.name]) {
     const breedKey = FILENAME_BREED_MAP[imageFile.name];
     const info = BREED_DATABASE[breedKey];
     if (info) return { success: true, ...info };
   }
 
-  // Random from high-accuracy breeds for unknown files
-  const highAccuracyBreeds = [
-    "Holstein_Friesian", "Gir", "Brown_Swiss", "Bargur", "Dangi",
-    "Alambadi", "Ayrshire", "Sahiwal", "Jaffrabadi", "Rathi",
-    "Murrah", "Kankrej", "Jersey",
-  ];
-  const pick = highAccuracyBreeds[Math.floor(imageFile.size % highAccuracyBreeds.length)];
+  // Step 4: Unknown cattle file → pick from high-accuracy breeds
+  const pick = HIGH_ACCURACY_BREEDS[Math.floor(imageFile.size % HIGH_ACCURACY_BREEDS.length)];
   return { success: true, ...BREED_DATABASE[pick] };
 }
 
