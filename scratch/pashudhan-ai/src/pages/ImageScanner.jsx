@@ -1,7 +1,7 @@
 // src/pages/ScanPage.jsx
 import { useState, useRef, useEffect } from "react";
 import { scanAnimal } from "../services/api";
-import buffaloImg from "../assets/buffalo.png";   
+import buffaloImg from "../assets/buffalo.png";
 import "./ImageScanner.css";
 
 export default function ScanPage() {
@@ -17,7 +17,6 @@ export default function ScanPage() {
     try {
       const savedResult = localStorage.getItem("lastScanResult");
       if (savedResult) setResult(JSON.parse(savedResult));
-
       const savedPreview = localStorage.getItem("lastScanPreview");
       if (savedPreview) setPreview(savedPreview);
     } catch (e) {}
@@ -26,12 +25,9 @@ export default function ScanPage() {
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     setImageFile(file);
     setResult(null);
     setError("");
-
-    // Convert to base64 so it can be saved in localStorage
     const reader = new FileReader();
     reader.onload = (ev) => {
       const base64 = ev.target.result;
@@ -48,7 +44,10 @@ export default function ScanPage() {
     setResult(null);
     try {
       const data = await scanAnimal(imageFile);
-      if (data.success) {
+      if (data.invalid) {
+        setError(data.error);
+        localStorage.removeItem("lastScanResult");
+      } else if (data.success) {
         setResult(data);
         localStorage.setItem("lastScanResult", JSON.stringify(data));
       } else {
@@ -65,6 +64,7 @@ export default function ScanPage() {
     setPreview(null);
     setImageFile(null);
     setResult(null);
+    setError("");
     localStorage.removeItem("lastScanPreview");
     localStorage.removeItem("lastScanResult");
   }
@@ -83,7 +83,7 @@ export default function ScanPage() {
           <div className="placeholder">
             <img src={buffaloImg} alt="cow" className="full-placeholder-image" />
             <p className="placeholder-text overlay">
-              Upload a photo of the animal to detect breed and visible diseases.
+              Upload a photo of cattle or buffalo to detect breed and health.
             </p>
           </div>
         )}
@@ -108,7 +108,11 @@ export default function ScanPage() {
         )}
       </div>
 
-      {error && <p className="error-msg">{error}</p>}
+      {error && (
+        <div style={{ background: "#FFEBEE", border: "1px solid #FFCDD2", borderRadius: "12px", padding: "14px", marginBottom: "12px", color: "#C62828", fontSize: "14px", fontWeight: "600" }}>
+          {error}
+        </div>
+      )}
 
       <button
         className="primary-btn"
@@ -122,24 +126,58 @@ export default function ScanPage() {
         )}
       </button>
 
+      {/* ── Full Result Card ── */}
       {result && (
         <div className="card result-card">
+          {/* Header */}
           <div className="result-header">
             <span className="result-check">✅</span>
-            <span className="result-title">AI Scan Result</span>
+            <div>
+              <span className="result-title">{result.breed}</span>
+              <span style={{ display: "block", fontSize: "12px", color: "#888", marginTop: "2px" }}>
+                {result.type} • {result.origin}
+              </span>
+            </div>
           </div>
 
+          {/* Confidence + Model Accuracy */}
           <div className="info-grid">
             <div className="info-box">
-              <p className="info-label">Detected Breed</p>
-              <p className="info-value">{result.breed?.replace(/_/g, " ")}</p>
+              <p className="info-label">AI Confidence</p>
+              <p className="info-value" style={{ color: "#2D6A4F" }}>{result.confidence}%</p>
             </div>
             <div className="info-box">
-              <p className="info-label">Confidence</p>
-              <p className="info-value">{result.confidence}%</p>
+              <p className="info-label">Model Accuracy</p>
+              <p className="info-value" style={{ color: "#0077b6" }}>{result.modelAccuracy}%</p>
             </div>
           </div>
 
+          {/* Breed Parameters */}
+          <div style={{ marginBottom: "12px" }}>
+            <p style={{ fontSize: "13px", fontWeight: "700", color: "#1B3A2F", marginBottom: "10px" }}>📊 Breed Parameters</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <ParamBox icon="🥛" label="Milk Yield" value={result.milk_yield} />
+              <ParamBox icon="🧈" label="Fat Content" value={result.fat_content} />
+              <ParamBox icon="⚖️" label="Body Weight" value={result.weight} />
+              <ParamBox icon="📏" label="Height" value={result.height} />
+              <ParamBox icon="📅" label="Lifespan" value={result.lifespan} />
+              <ParamBox icon="🌡️" label="Heat Tolerance" value={result.heat_tolerance} />
+            </div>
+          </div>
+
+          {/* Color & Horns */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+            <ParamBox icon="🎨" label="Color" value={result.color} />
+            <ParamBox icon="🔱" label="Horns" value={result.horns} />
+          </div>
+
+          {/* Uses */}
+          <div style={{ background: "#F0F7F4", borderRadius: "10px", padding: "10px 12px", marginBottom: "12px" }}>
+            <p style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>PRIMARY USES</p>
+            <p style={{ fontSize: "14px", fontWeight: "600", color: "#1B3A2F" }}>🎯 {result.uses}</p>
+          </div>
+
+          {/* Health Status */}
           <div className="health-box">
             <p className="info-label">Health Status</p>
             <p className="health-status" style={{ color: healthColor }}>
@@ -147,8 +185,25 @@ export default function ScanPage() {
             </p>
             <p className="health-details">{result.health_details}</p>
           </div>
+
+          {/* Today's Tip */}
+          {result.tip && (
+            <div style={{ background: "#FFF8E1", borderRadius: "10px", padding: "12px", marginTop: "10px", borderLeft: "4px solid #FFC107" }}>
+              <p style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>💡 CARE TIP</p>
+              <p style={{ fontSize: "13px", color: "#5D4037", lineHeight: "1.5" }}>{result.tip}</p>
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ParamBox({ icon, label, value }) {
+  return (
+    <div style={{ background: "#F5F0E8", borderRadius: "10px", padding: "10px" }}>
+      <p style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>{icon} {label}</p>
+      <p style={{ fontSize: "13px", fontWeight: "600", color: "#1B3A2F" }}>{value || "—"}</p>
     </div>
   );
 }
