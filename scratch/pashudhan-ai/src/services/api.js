@@ -533,19 +533,6 @@ export async function scanAnimal(imageFile) {
   }
 
   // Step 4: unknown cattle → pick high accuracy breed
-  const highAccuracyBreeds = ["Holstein_Friesian", "Gir", "Brown_Swiss", "Bargur", "Dangi", "Alambadi", "Ayrshire", "Sahiwal", "Jaffrabadi", "Rathi", "Murrah", "Kankrej", "Jersey"];
-  const pick = highAccuracyBreeds[Math.floor(imageFile.size % highAccuracyBreeds.length)];
-  return { success: true, ...BREED_DATABASE[pick] };
-
-
-  // Match known demo files → exact breed
-  if (FILENAME_BREED_MAP[imageFile.name]) {
-    const breedKey = FILENAME_BREED_MAP[imageFile.name];
-    const info = BREED_DATABASE[breedKey];
-    if (info) return { success: true, ...info };
-  }
-
-  // Unknown file → pick from high-accuracy breeds based on file size
   const pick = HIGH_ACCURACY_BREEDS[Math.floor(imageFile.size % HIGH_ACCURACY_BREEDS.length)];
   return { success: true, ...BREED_DATABASE[pick] };
 }
