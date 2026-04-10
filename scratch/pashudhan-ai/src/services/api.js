@@ -456,7 +456,7 @@ const BREED_DATABASE = {
 // ── Gemini validation ─────────────────────────────────────────────────────
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
-
+console.log("ENV:", import.meta.env.VITE_GEMINI_API_KEY);
 async function validateImageWithGemini(imageFile) {
   try {
     const base64 = await new Promise((resolve, reject) => {
@@ -465,22 +465,47 @@ async function validateImageWithGemini(imageFile) {
       reader.onerror = reject;
       reader.readAsDataURL(imageFile);
     });
+
     const res = await fetch(GEMINI_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [
-          { inline_data: { mime_type: imageFile.type || "image/jpeg", data: base64 } },
-          { text: "Does this image show a cattle (cow) or buffalo? Reply ONLY with 'yes' or 'no'." }
-        ]}],
-        generationConfig: { maxOutputTokens: 5, temperature: 0 },
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: imageFile.type || "image/jpeg",
+                data: base64
+              }
+            },
+            {
+              text: "Is there a cow, cattle, or buffalo in this image? Answer only yes or no."
+            }
+          ]
+        }],
+        generationConfig: {
+          maxOutputTokens: 5,
+          temperature: 0
+        }
       }),
     });
+
+    // ✅ IMPORTANT: Handle 429 / API failure
+    if (!res.ok) {
+      console.warn("Gemini blocked (429 or error). Skipping validation.");
+      return true; // ✅ ALLOW IMAGE
+    }
+
     const data = await res.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
-    return answer === "yes";
-  } catch (e) {
-    return true; // if Gemini fails, allow through
+
+    const answer =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.toLowerCase() || "";
+
+    return answer.includes("yes");
+
+  } catch (error) {
+    console.warn("Gemini failed:", error);
+    return true; // ✅ ALLOW IMAGE
   }
 }
 // ── Keywords for invalid image detection ──────────────────────────────────
