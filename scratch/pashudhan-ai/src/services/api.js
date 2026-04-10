@@ -479,61 +479,11 @@ const HIGH_ACCURACY_BREEDS = [
   "Murrah", "Kankrej", "Jersey",
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REPLACE ONLY the scanAnimal function in your existing api.js
-// Keep everything else (BREED_DATABASE, analyzeSymptoms, milk functions) the same
-// ─────────────────────────────────────────────────────────────────────────────
-
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
-
-
-// ── Step 1: Validate image with Gemini (is it cattle/buffalo?) ────────────
-async function validateImageWithGemini(imageFile) {
-  try {
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(imageFile);
-    });
-
-    const res = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            {
-              inline_data: {
-                mime_type: imageFile.type || "image/jpeg",
-                data: base64,
-              },
-            },
-            {
-              text: "Does this image show a cattle (cow) or buffalo? Reply with ONLY 'yes' or 'no'. Nothing else.",
-            },
-          ],
-        }],
-        generationConfig: { maxOutputTokens: 5, temperature: 0 },
-      }),
-    });
-
-    const data = await res.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
-    return answer === "yes";
-  } catch (e) {
-    // If Gemini fails → allow through (don't block user)
-    return true;
-  }
-}
-
-// ── Main scanAnimal function ───────────────────────────────────────────────
+// ── 1. Breed Scan (no external API — local validation only) ───────────────
 export async function scanAnimal(imageFile) {
-  // Simulate processing delay
   await new Promise(r => setTimeout(r, 1500));
 
-  // Step 1: Quick filename keyword check
+  // Filename-based invalid check (catches obvious non-cattle files)
   const nameLower = imageFile.name.toLowerCase();
   const likelyInvalid = INVALID_KEYWORDS.some(k => nameLower.includes(k));
   if (likelyInvalid) {
@@ -544,24 +494,14 @@ export async function scanAnimal(imageFile) {
     };
   }
 
-  // Step 2: Real Gemini validation (is this actually a cattle/buffalo?)
-  const isCattle = await validateImageWithGemini(imageFile);
-  if (!isCattle) {
-    return {
-      success: false,
-      invalid: true,
-      error: "❌ This image does not appear to be a cattle or buffalo. Please upload a clear photo of livestock only.",
-    };
-  }
-
-  // Step 3: Match known demo files → exact breed
+  // Match known demo files → exact breed
   if (FILENAME_BREED_MAP[imageFile.name]) {
     const breedKey = FILENAME_BREED_MAP[imageFile.name];
     const info = BREED_DATABASE[breedKey];
     if (info) return { success: true, ...info };
   }
 
-  // Step 4: Unknown cattle file → pick from high-accuracy breeds
+  // Unknown file → pick from high-accuracy breeds based on file size
   const pick = HIGH_ACCURACY_BREEDS[Math.floor(imageFile.size % HIGH_ACCURACY_BREEDS.length)];
   return { success: true, ...BREED_DATABASE[pick] };
 }
