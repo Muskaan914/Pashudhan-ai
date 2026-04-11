@@ -519,10 +519,16 @@ async function validateWithHuggingFace(imageFile) {
 }
 // ── Keywords for invalid image detection ──────────────────────────────────
 const INVALID_KEYWORDS = [
+  // People
   "human", "person", "people", "man", "woman", "girl", "boy", "face",
-  "selfie", "portrait", "dog", "cat", "bird", "horse", "sheep", "goat",
-  "pig", "chicken", "car", "building", "tree", "flower", "food",
-  "landscape", "sky", "ocean", "city", "screenshot",
+  "selfie", "portrait", "profile", "photo", "family", "baby", "child",
+  // Other animals
+  "dog", "cat", "bird", "horse", "sheep", "goat", "pig", "chicken",
+  "fish", "rabbit", "lion", "tiger", "elephant", "monkey", "snake",
+  // Objects / scenes
+  "car", "bike", "building", "tree", "flower", "food", "flag",
+  "landscape", "sky", "ocean", "city", "screenshot", "logo",
+  "chart", "graph", "map", "text", "document", "poster",
 ];
 // ── Real breed detection using your HF Space model ───────────────────────
 const HF_BREED_API = "https://muskaan914-pashudhan-breed.hf.space/predict";
@@ -534,7 +540,7 @@ const HIGH_ACCURACY_BREEDS = [
 ];
 
 export async function scanAnimal(imageFile) {
-  // Step 1: Filename keyword check
+  // Step 1: Filename keyword check (quick pre-filter)
   const nameLower = imageFile.name.toLowerCase();
   const likelyInvalid = INVALID_KEYWORDS.some(k => nameLower.includes(k));
   if (likelyInvalid) {
@@ -545,7 +551,7 @@ export async function scanAnimal(imageFile) {
     };
   }
 
-  // Step 2: Call your real EfficientNet-B0 model on HF Space
+  // Step 2: Send to HF model — use confidence as validator
   try {
     const formData = new FormData();
     formData.append("file", imageFile);
@@ -559,6 +565,15 @@ export async function scanAnimal(imageFile) {
 
     const data = await res.json();
     if (!data.success) throw new Error("Prediction failed");
+
+    // ── Confidence threshold: reject non-cattle images ──
+    if (data.confidence < 40) {
+      return {
+        success: false,
+        invalid: true,
+        error: "❌ No cattle detected. Please upload a clear photo of a cow or buffalo.",
+      };
+    }
 
     // Match returned breed key to our database
     const breedKey = data.breed;
@@ -584,10 +599,12 @@ export async function scanAnimal(imageFile) {
       };
     }
   } catch (e) {
-    // Fallback to local if HF Space is sleeping/down
-    console.warn("HF Space unavailable, using local fallback:", e.message);
-    const pick = HIGH_ACCURACY_BREEDS[Math.floor(imageFile.size % HIGH_ACCURACY_BREEDS.length)];
-    return { success: true, ...BREED_DATABASE[pick] };
+    console.warn("HF Space unavailable:", e.message);
+    return {
+      success: false,
+      invalid: true,
+      error: "⚠️ Scanner is unavailable right now. Please try again in a moment.",
+    };
   }
 }
 
