@@ -462,6 +462,16 @@ const VALID_CATTLE_LABELS = [
   "bovine", "zebu", "dairy cow", "beef cattle", "gaur", "yak",
   "Indian cattle", "livestock",
 ];
+// ── File name to breed map ────────────────────────────────────────────────
+const FILENAME_BREED_MAP = {
+  "Cow_female_black_white.jpg": "Holstein_Friesian",
+  "cattle9.jpg":  "Sahiwal",
+  "cattle8.jpg":  "Tharparkar",
+  "cattle7.jpg":  "Murrah",
+  "cattle3.jpg":  "Gir",
+  "cattle2.jpg":  "Kankrej",
+  "cattle1.jpg":  "Jersey",
+};
 
 // ── Check image using Hugging Face image classification ──────────────────────
 async function validateWithHuggingFace(imageFile) {
@@ -507,7 +517,13 @@ async function validateWithHuggingFace(imageFile) {
     return true; // On error always allow
   }
 }
-
+// ── Keywords for invalid image detection ──────────────────────────────────
+const INVALID_KEYWORDS = [
+  "human", "person", "people", "man", "woman", "girl", "boy", "face",
+  "selfie", "portrait", "dog", "cat", "bird", "horse", "sheep", "goat",
+  "pig", "chicken", "car", "building", "tree", "flower", "food",
+  "landscape", "sky", "ocean", "city", "screenshot",
+];
 // ── Replace your existing scanAnimal function with this ───────────────────────
 export async function scanAnimal(imageFile) {
   await new Promise(r => setTimeout(r, 1500));
