@@ -1,11 +1,12 @@
 // src/pages/FarmerProfile.jsx
 import { useState, useEffect, useRef } from "react";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import "./FarmerProfile.css";
 
 const BREED_LIST = [
-  // Cows
   { breed: "Gir", species: "Cow" },
   { breed: "Sahiwal", species: "Cow" },
   { breed: "Tharparkar", species: "Cow" },
@@ -23,7 +24,6 @@ const BREED_LIST = [
   { breed: "Jersey", species: "Cow" },
   { breed: "Ayrshire", species: "Cow" },
   { breed: "Brown Swiss", species: "Cow" },
-  // Buffaloes
   { breed: "Murrah", species: "Buffalo" },
   { breed: "Jaffarabadi", species: "Buffalo" },
   { breed: "Nagpuri", species: "Buffalo" },
@@ -31,13 +31,11 @@ const BREED_LIST = [
   { breed: "Nili-Ravi", species: "Buffalo" },
   { breed: "Bhadawari", species: "Buffalo" },
   { breed: "Mehsana", species: "Buffalo" },
-  // Goats
   { breed: "Sirohi", species: "Goat" },
   { breed: "Barbari", species: "Goat" },
   { breed: "Beetal", species: "Goat" },
   { breed: "Jamnapari", species: "Goat" },
   { breed: "Black Bengal", species: "Goat" },
-  // Others
   { breed: "Bannur", species: "Sheep" },
   { breed: "Deccani", species: "Sheep" },
 ];
@@ -95,16 +93,13 @@ function LivestockEntry({ entry, index, onChange, onRemove }) {
             </div>
           )}
         </div>
-
         <div className="ls-count-wrap">
           <button className="ls-count-btn" onClick={() => onChange(index, { ...entry, count: Math.max(1, (entry.count || 1) - 1) })}>−</button>
           <span className="ls-count-val">{entry.count || 1}</span>
           <button className="ls-count-btn" onClick={() => onChange(index, { ...entry, count: (entry.count || 1) + 1 })}>+</button>
         </div>
-
         <button className="ls-remove-btn" onClick={() => onRemove(index)}>✕</button>
       </div>
-
       {entry.species && (
         <span className="species-tag">{SPECIES_ICON[entry.species]} {entry.species}</span>
       )}
@@ -113,11 +108,18 @@ function LivestockEntry({ entry, index, onChange, onRemove }) {
 }
 
 export default function FarmerProfile() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({ name: "", phone: "", village: "" });
   const [livestock, setLivestock] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const authUser = auth.currentUser;
+  const authEmail = authUser?.email || "";
+  const authPhotoURL = authUser?.photoURL || "";
+  const isGoogle = authUser?.providerData?.[0]?.providerId === "google.com";
 
   useEffect(() => {
     async function loadProfile() {
@@ -127,6 +129,8 @@ export default function FarmerProfile() {
           const data = snap.data();
           setProfile({ name: data.name || "", phone: data.phone || "", village: data.village || "" });
           setLivestock(data.livestock || []);
+        } else if (authUser?.displayName) {
+          setProfile(p => ({ ...p, name: authUser.displayName }));
         }
       } catch (e) {
         console.error(e);
@@ -136,6 +140,19 @@ export default function FarmerProfile() {
     }
     loadProfile();
   }, []);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await signOut(auth);
+      localStorage.removeItem("farmerName");
+      localStorage.removeItem("totalAnimals");
+      navigate("/login");
+    } catch (e) {
+      alert("Logout failed: " + e.message);
+      setLoggingOut(false);
+    }
+  }
 
   function handleChange(index, updated) {
     const newList = [...livestock];
@@ -156,11 +173,7 @@ export default function FarmerProfile() {
   async function handleSave() {
     setSaving(true);
     try {
-      await setDoc(doc(db, "farmers", "farmer_1"), {
-        ...profile,
-        livestock,
-        totalAnimals,
-      });
+      await setDoc(doc(db, "farmers", "farmer_1"), { ...profile, livestock, totalAnimals });
       localStorage.setItem("farmerName", profile.name);
       localStorage.setItem("totalAnimals", String(totalAnimals));
       setSaved(true);
@@ -174,19 +187,35 @@ export default function FarmerProfile() {
 
   if (loading) return <div className="profile-container"><p className="loading-text">Loading profile...</p></div>;
 
-  const initials = profile.name
-    ? profile.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
-    : "F";
+  const displayName = profile.name || authUser?.displayName || "Your Name";
+  const initials = displayName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <div className="profile-container">
       <p className="page-label">My Account</p>
       <h1 className="page-title">Farmer Profile</h1>
 
+      {/* Avatar */}
       <div className="avatar-section">
-        <div className="avatar">{initials}</div>
-        <p className="avatar-name">{profile.name || "Your Name"}</p>
-        <p className="avatar-village">{profile.village || "Village, District"}</p>
+        {authPhotoURL
+          ? <img src={authPhotoURL} alt="avatar" className="avatar-photo" />
+          : <div className="avatar">{initials}</div>
+        }
+        <p className="avatar-name">{displayName}</p>
+        <p className="avatar-village">{profile.village || authEmail}</p>
+      </div>
+
+      {/* Account Info */}
+      <div className="card">
+        <h2 className="card-title">Account Info</h2>
+        <div className="account-info-row">
+          <span className="account-info-label">Logged in as</span>
+          <span className="account-info-value">{authEmail}</span>
+        </div>
+        <div className="account-info-row">
+          <span className="account-info-label">Sign-in method</span>
+          <span className="account-info-value">{isGoogle ? "🔵 Google" : "📧 Email/Password"}</span>
+        </div>
       </div>
 
       {/* Personal Info */}
@@ -215,23 +244,22 @@ export default function FarmerProfile() {
           <h2 className="card-title" style={{ margin: 0 }}>My Livestock</h2>
           <span className="total-badge">{totalAnimals} total</span>
         </div>
-
         {livestock.length === 0 && (
           <p className="empty-livestock">No livestock added yet. Tap below to add.</p>
         )}
-
         {livestock.map((entry, i) => (
           <LivestockEntry key={i} entry={entry} index={i} onChange={handleChange} onRemove={removeEntry} />
         ))}
-
-        <button className="add-livestock-btn" onClick={addEntry}>
-          + Add Breed
-        </button>
+        <button className="add-livestock-btn" onClick={addEntry}>+ Add Breed</button>
       </div>
 
       {saved && <p className="success-msg">✅ Profile saved successfully!</p>}
       <button className="save-btn" onClick={handleSave} disabled={saving}>
         {saving ? "Saving..." : "💾 Save Profile"}
+      </button>
+
+      <button className="logout-btn" onClick={handleLogout} disabled={loggingOut}>
+        {loggingOut ? "Logging out..." : "🚪 Logout"}
       </button>
     </div>
   );
