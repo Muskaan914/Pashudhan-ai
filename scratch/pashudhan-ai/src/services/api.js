@@ -5,13 +5,6 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 // ── Model Info (from your trained model) ──────────────────────────────────
 // Architecture: EfficientNet-B0 | Classes: 41 | Overall Accuracy: 61.60% | Top-5: 90.44%
 
-// src/services/api.js — Full 41-breed database from trained EfficientNet-B0 model
-import { db } from "../firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-
-// ── Model Info (from your trained model) ──────────────────────────────────
-// Architecture: EfficientNet-B0 | Classes: 41 | Overall Accuracy: 61.60% | Top-5: 90.44%
-
 // ── Complete Breed Database (all 41 classes from your model) ──────────────
 const BREED_DATABASE = {
   // ── Indian Cattle ─────────────────────────────────────────────────────
