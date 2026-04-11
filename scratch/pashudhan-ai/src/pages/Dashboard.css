@@ -1,0 +1,26 @@
+/* src/pages/Dashboard.css */
+.dash-container  { max-width: 600px; margin: 0 auto; padding: 24px 16px 80px; background: #F5F0E8; min-height: 100vh; }
+.dash-header     { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.dash-greeting   { font-size: 13px; color: #888; margin-bottom: 2px; }
+.dash-name       { font-size: 24px; font-weight: 700; color: #1B3A2F; }
+.avatar-circle   { width: 44px; height: 44px; border-radius: 50%; background: #2D6A4F; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.stats-grid      { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-card       { background: #fff; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: transform 0.15s; }
+.stat-card:active { transform: scale(0.97); }
+.stat-icon       { font-size: 22px; color: #2D6A4F; display: block; margin-bottom: 6px; }
+.stat-val        { font-size: 22px; font-weight: 700; color: #1B3A2F; }
+.stat-label      { font-size: 11px; color: #888; margin-top: 2px; }
+.section-title   { font-size: 16px; font-weight: 700; color: #1B3A2F; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.see-all         { font-size: 13px; font-weight: 600; color: #2D6A4F; cursor: pointer; }
+.quick-grid      { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.quick-card      { border-radius: 14px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.15s; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.quick-card:active { transform: scale(0.97); }
+.quick-label     { font-size: 12px; font-weight: 700; text-align: center; white-space: pre-line; line-height: 1.4; }
+.alert-card      { border-radius: 12px; padding: 14px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; border-left: 4px solid; cursor: pointer; transition: transform 0.15s; }
+.alert-card:active { transform: scale(0.98); }
+.alert-name      { font-size: 13px; font-weight: 700; color: #1B3A2F; margin-bottom: 2px; }
+.alert-detail    { font-size: 11px; color: #666; margin-bottom: 4px; }
+.alert-days      { font-size: 11px; font-weight: 700; }
+.urgency-badge   { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; white-space: nowrap; border: 1px solid currentColor; }
+.tip-banner      { background: #fff; border-radius: 12px; padding: 14px; border-left: 4px solid #FFC107; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.tip-text        { font-size: 13px; color: #555; line-height: 1.6; }

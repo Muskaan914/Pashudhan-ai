@@ -1,111 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { Sun, Activity, Droplets } from 'lucide-react';
-import { getWeeklyMilk } from '../services/api';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+// src/pages/Dashboard.jsx — Updated with vaccine alerts + quick links
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getWeeklyMilk } from "../services/api";
+import "./Dashboard.css";
 
-// Tips based on scanned breed
-const BREED_TIPS = {
-  "Murrah Buffalo":     "Murrah buffaloes need cool shaded areas in hot weather. Ensure plenty of clean drinking water to maintain high milk yield.",
-  "Gir Cow":            "Gir cows are heat-tolerant but still need shade and fresh water today. Check udder health before evening milking.",
-  "Holstein Friesian":  "Holstein Friesians are sensitive to heat. Keep them in a cool area and maintain regular milking schedule for best yield.",
-  "Sahiwal":            "Sahiwal cows are well-adapted to local conditions. Provide mineral supplements today to boost milk production.",
-  "Tharparkar":         "Tharparkar cattle are drought-resistant. Ensure balanced feed with green fodder for optimal health.",
-  "Kankrej":            "Kankrej cattle need regular hoof inspection. Check for any limping and provide soft dry bedding.",
-  "Jersey Cow":         "Jersey cows are efficient milk producers. Ensure high-quality feed and clean water for best results today.",
+// ── Vaccine alert schedule ────────────────────────────────────────────────
+const VACCINE_ALERTS = [
+  {
+    name: "FMD Vaccine Due",
+    detail: "Foot & Mouth Disease — give to all cattle & buffalo",
+    urgency: "urgent",    // red
+    icon: "💉",
+    daysUntil: 3,
+  },
+  {
+    name: "HS Vaccine Reminder",
+    detail: "Haemorrhagic Septicaemia — before monsoon season",
+    urgency: "warning",   // orange
+    icon: "🩺",
+    daysUntil: 15,
+  },
+  {
+    name: "BQ Vaccine Due",
+    detail: "Black Quarter — for young cattle 6 months–2 years",
+    urgency: "warning",
+    icon: "⚕️",
+    daysUntil: 20,
+  },
+  {
+    name: "Deworming Due",
+    detail: "Regular deworming every 3 months for all livestock",
+    urgency: "info",      // green
+    icon: "💊",
+    daysUntil: 30,
+  },
+];
+
+const URGENCY_STYLE = {
+  urgent:  { bg: "#FFEBEE", border: "#EF9A9A", color: "#C62828", badge: "Due Now" },
+  warning: { bg: "#FFF3E0", border: "#FFCC80", color: "#E65100", badge: "Upcoming" },
+  info:    { bg: "#E8F5E9", border: "#A5D6A7", color: "#2D6A4F", badge: "Scheduled" },
 };
 
-const DEFAULT_TIP = "Ensure all your livestock have shaded standing areas and plenty of drinking water to maintain milk yield.";
-
 export default function Dashboard() {
-  const [todayMilk, setTodayMilk]       = useState(null);
-  const [farmerName, setFarmerName]     = useState("Farmer");
-  const [initials, setInitials]         = useState("F");
-  const [tip, setTip]                   = useState(DEFAULT_TIP);
-  const [totalAnimals, setTotalAnimals] = useState("14");
+  const navigate = useNavigate();
+  const [milkToday, setMilkToday]   = useState(0);
+  const [totalAnimals, setTotalAnimals] = useState(0);
+  const [farmerName, setFarmerName] = useState("Farmer");
 
   useEffect(() => {
-    // Load milk data
-    async function fetchMilk() {
-      try {
-        const data = await getWeeklyMilk();
-        if (data.success && data.weekly.length > 0) {
-          const todayStr = new Date().toISOString().split("T")[0];
-          const todayEntry = data.weekly.find(d => d.date === todayStr);
-          setTodayMilk(todayEntry ? todayEntry.liters : 0);
-        }
-      } catch (e) { console.error(e); }
-    }
+    // Load farmer name from Firebase or localStorage
+    const savedName = localStorage.getItem("farmerName") || "Farmer";
+    setFarmerName(savedName);
 
-    // Load farmer profile from Firebase
-    async function fetchProfile() {
-      try {
-        const snap = await getDoc(doc(db, "farmers", "farmer_1"));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.name) {
-            setFarmerName(data.name);
-            setInitials(data.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2));
-          }
-          if (data.totalAnimals) setTotalAnimals(data.totalAnimals);
-        }
-      } catch (e) { console.error(e); }
-    }
+    // Load total animals from localStorage (set in FarmerProfile)
+    const animals = localStorage.getItem("totalAnimals") || "0";
+    setTotalAnimals(animals);
 
-    // Load last scan tip from localStorage
-    try {
-      const saved = localStorage.getItem("lastScanResult");
-      if (saved) {
-        const scan = JSON.parse(saved);
-        if (scan.breed && BREED_TIPS[scan.breed]) {
-          setTip(BREED_TIPS[scan.breed]);
-        }
+    // Load today's milk
+    getWeeklyMilk().then(data => {
+      if (data.success && data.weekly?.length > 0) {
+        const today = data.weekly[data.weekly.length - 1];
+        setMilkToday(today?.liters || 0);
       }
-    } catch (e) {}
-
-    fetchMilk();
-    fetchProfile();
+    }).catch(() => {});
   }, []);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Namaste 🌅" : hour < 17 ? "Good Afternoon ☀️" : "Good Evening 🌙";
+
   return (
-    <div className="dashboard-page">
-      <header className="header">
+    <div className="dash-container">
+      {/* Header */}
+      <div className="dash-header">
         <div>
-          <p>नमस्ते (Namaste),</p>
-          <h1>{farmerName}</h1>
+          <p className="dash-greeting">{greeting}</p>
+          <h1 className="dash-name">{farmerName}</h1>
         </div>
-        <div className="profile-avatar">{initials}</div>
-      </header>
-
-      {/* Today's Tip — based on last scanned animal */}
-      <div className="card sticky-tip">
-        <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px'}}>
-          <Sun size={24} color="#e07a5f" />
-          <h2>Today's Tip</h2>
-        </div>
-        <p>{tip}</p>
-      </div>
-
-      {/* Quick Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-        <div className="card" style={{margin: 0, textAlign: 'center'}}>
-          <Activity size={32} color="var(--color-primary)" style={{margin: '0 auto 8px'}} />
-          <h2>{totalAnimals} Total</h2>
-          <p>Livestock</p>
-        </div>
-        <div className="card" style={{margin: 0, textAlign: 'center'}}>
-          <Droplets size={32} color="#0077b6" style={{margin: '0 auto 8px'}} />
-          <h2>{todayMilk === null ? '...' : `${todayMilk} L`}</h2>
-          <p>Today's Milk</p>
+        <div className="avatar-circle" onClick={() => navigate("/profile")}>
+          {farmerName[0]?.toUpperCase() || "F"}
         </div>
       </div>
 
-      {/* Alerts */}
-      <h2>Important Alerts</h2>
-      <div className="card" style={{ borderLeft: '4px solid var(--color-accent)' }}>
-        <h3 style={{fontSize: '1rem', marginBottom: '4px'}}>Vaccination Due</h3>
-        <p>FMD vaccine required for "Gauri" (Cow #4) by tomorrow.</p>
+      {/* Stats */}
+      <div className="stats-grid">
+        <div className="stat-card" onClick={() => navigate("/scan")}>
+          <span className="stat-icon">〜</span>
+          <p className="stat-val">{totalAnimals || "—"}</p>
+          <p className="stat-label">Total Livestock</p>
+        </div>
+        <div className="stat-card" onClick={() => navigate("/milk")}>
+          <span className="stat-icon" style={{ color: "#1565C0" }}>◈</span>
+          <p className="stat-val">{milkToday > 0 ? `${milkToday}L` : "—"}</p>
+          <p className="stat-label">Today's Milk</p>
+        </div>
       </div>
+
+      {/* Quick Actions */}
+      <p className="section-title">Quick Actions</p>
+      <div className="quick-grid">
+        <QuickAction icon="🐄" label="Breed\nEncyclopedia" color="#E8F5E9" tc="#2D6A4F" onClick={() => navigate("/breeds")} />
+        <QuickAction icon="💉" label="Vaccine\nGuide" color="#FFEBEE" tc="#C62828" onClick={() => navigate("/vaccines")} />
+        <QuickAction icon="🔍" label="Scan\nAnimal" color="#E3F2FD" tc="#1565C0" onClick={() => navigate("/scan")} />
+        <QuickAction icon="❤️" label="Health\nCheck" color="#FCE4EC" tc="#880E4F" onClick={() => navigate("/health")} />
+      </div>
+
+      {/* Vaccine Alerts */}
+      <p className="section-title">
+        💉 Vaccine Alerts
+        <span className="see-all" onClick={() => navigate("/vaccines")}>See all →</span>
+      </p>
+
+      {VACCINE_ALERTS.map((alert, i) => {
+        const style = URGENCY_STYLE[alert.urgency];
+        return (
+          <div
+            key={i}
+            className="alert-card"
+            style={{ background: style.bg, borderLeftColor: style.border }}
+            onClick={() => navigate("/vaccines")}
+          >
+            <span style={{ fontSize: "20px" }}>{alert.icon}</span>
+            <div style={{ flex: 1 }}>
+              <p className="alert-name">{alert.name}</p>
+              <p className="alert-detail">{alert.detail}</p>
+              <p className="alert-days" style={{ color: style.color }}>
+                {alert.daysUntil <= 3 ? "🔴 Due in " : alert.daysUntil <= 15 ? "🟡 Due in " : "🟢 Due in "}
+                {alert.daysUntil} days
+              </p>
+            </div>
+            <span className="urgency-badge" style={{ background: "#fff", color: style.color }}>
+              {style.badge}
+            </span>
+          </div>
+        );
+      })}
+
+      {/* Today's tip */}
+      <p className="section-title">💡 Today's Tip</p>
+      <div className="tip-banner">
+        <p className="tip-text">
+          It's hot outside. Ensure your animals have shaded standing areas and plenty of drinking water to maintain milk yield and prevent heat stress.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function QuickAction({ icon, label, color, tc, onClick }) {
+  return (
+    <div className="quick-card" style={{ background: color }} onClick={onClick}>
+      <span style={{ fontSize: "24px" }}>{icon}</span>
+      <p className="quick-label" style={{ color: tc }}>{label}</p>
     </div>
   );
 }
