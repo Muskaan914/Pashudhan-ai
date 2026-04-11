@@ -3,35 +3,58 @@
 .page-label { font-size: 13px; color: #888; margin-bottom: 2px; }
 .page-title { font-size: 26px; font-weight: 700; color: #1B3A2F; margin-bottom: 20px; }
 .loading-text { color: #888; text-align: center; margin-top: 40px; }
+
+/* ── Avatar ── */
 .avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
 .avatar { width: 80px; height: 80px; border-radius: 50%; background: #2D6A4F; color: #fff; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.avatar-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid #2D6A4F; }
 .avatar-name { font-size: 18px; font-weight: 700; color: #1B3A2F; }
 .avatar-village { font-size: 13px; color: #888; }
+
+/* ── Card ── */
 .card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
 .card-title { font-size: 16px; font-weight: 700; color: #1B3A2F; margin-bottom: 16px; }
+.card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.total-badge { background: #E8F5E9; color: #2D6A4F; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+
+/* ── Fields ── */
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 500; }
 .field input { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-size: 14px; color: #333; background: #FAFAFA; outline: none; font-family: inherit; box-sizing: border-box; }
 .field input:focus { border-color: #2D6A4F; }
-.animal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.animal-card { background: #F5F0E8; border-radius: 12px; padding: 12px; text-align: center; }
-.animal-icon { font-size: 24px; display: block; margin-bottom: 6px; }
-.animal-card label { display: block; font-size: 11px; color: #888; margin-bottom: 6px; }
-.animal-card input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; text-align: center; background: #fff; outline: none; box-sizing: border-box; }
-.success-msg { color: #2D6A4F; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; }
-.save-btn { width: 100%; background: #2D6A4F; color: #fff; border: none; border-radius: 30px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-.save-btn:hover { opacity: 0.9; }
-.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ── Account Info ── */
 .account-info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
 .account-info-row:last-child { border-bottom: none; }
 .account-info-label { font-size: 12px; color: #888; font-weight: 500; }
 .account-info-value { font-size: 13px; color: #1B3A2F; font-weight: 600; text-align: right; max-width: 60%; word-break: break-all; }
 
-/* ── Avatar photo (Google) ── */
-.avatar-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 3px solid #2D6A4F; }
+/* ── Livestock Entry ── */
+.livestock-entry { background: #F5F0E8; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.livestock-row { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.livestock-search-wrap { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 0 10px; }
+.ls-icon { font-size: 18px; margin-right: 6px; flex-shrink: 0; }
+.livestock-search-input { flex: 1; min-width: 0; border: none; outline: none; font-size: 14px; padding: 10px 0; background: transparent; color: #333; font-family: inherit; }
+.breed-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; max-height: 220px; overflow-y: auto; margin-top: 4px; }
+.breed-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; transition: background 0.15s; }
+.breed-option:hover { background: #F5F0E8; }
+.breed-option-icon { font-size: 20px; flex-shrink: 0; }
+.breed-option-name { display: block; font-size: 14px; font-weight: 600; color: #1B3A2F; }
+.breed-option-species { display: block; font-size: 11px; color: #888; }
+.ls-count-wrap { display: flex; align-items: center; gap: 4px; background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 4px 6px; flex-shrink: 0; }
+.ls-count-btn { background: #2D6A4F; color: #fff; border: none; border-radius: 6px; width: 26px; height: 26px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ls-count-val { font-size: 15px; font-weight: 700; color: #1B3A2F; min-width: 22px; text-align: center; }
+.ls-remove-btn { background: #FFE5E5; color: #C0392B; border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 14px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.species-tag { display: inline-block; margin-top: 8px; font-size: 11px; color: #2D6A4F; background: #E8F5E9; border-radius: 20px; padding: 3px 10px; font-weight: 600; }
+.empty-livestock { color: #aaa; font-size: 13px; text-align: center; padding: 16px 0; }
+.add-livestock-btn { width: 100%; background: #F0FAF4; color: #2D6A4F; border: 1.5px dashed #2D6A4F; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: background 0.2s; }
+.add-livestock-btn:hover { background: #E8F5E9; }
 
-/* ── Logout Button ── */
+/* ── Buttons ── */
+.success-msg { color: #2D6A4F; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; }
+.save-btn { width: 100%; background: #2D6A4F; color: #fff; border: none; border-radius: 30px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.save-btn:hover { opacity: 0.9; }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .logout-btn { width: 100%; background: #fff; color: #C0392B; border: 2px solid #FFCDD2; border-radius: 30px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
 .logout-btn:hover { background: #FFF0F0; }
 .logout-btn:disabled { opacity: 0.6; cursor: not-allowed; }
