@@ -14,21 +14,30 @@ const VACCINE_ALERTS = [
 ];
 
 const URGENCY_STYLE = {
-  urgent:  { bg: "#FFEBEE", border: "#EF9A9A", color: "#C62828", badge: "Due Now" },
-  warning: { bg: "#FFF3E0", border: "#FFCC80", color: "#E65100", badge: "Upcoming" },
-  info:    { bg: "#E8F5E9", border: "#A5D6A7", color: "#2D6A4F", badge: "Scheduled" },
+  urgent:  { bg: "#FFF0F0", border: "#FF6B6B", color: "#C0392B", badge: "Due Now",   dot: "#FF4757" },
+  warning: { bg: "#FFFBF0", border: "#FFD93D", color: "#D68910", badge: "Upcoming",  dot: "#FFC312" },
+  info:    { bg: "#F0FFF4", border: "#6BCB77", color: "#1E8449", badge: "Scheduled", dot: "#2ECC71" },
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [milkToday, setMilkToday]       = useState(null);
   const [totalAnimals, setTotalAnimals] = useState(null);
-  const [farmerName, setFarmerName]     = useState("Farmer");
+  const [farmerName, setFarmerName]     = useState("");
   const [initials, setInitials]         = useState("F");
 
   useEffect(() => {
-    // Load from Firebase
     async function loadProfile() {
+      // Instantly show from cache first
+      const cachedName    = localStorage.getItem("farmerName");
+      const cachedAnimals = localStorage.getItem("totalAnimals");
+      if (cachedName) {
+        setFarmerName(cachedName);
+        setInitials(cachedName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2));
+      }
+      if (cachedAnimals) setTotalAnimals(cachedAnimals);
+
+      // Then refresh from Firebase
       try {
         const snap = await getDoc(doc(db, "farmers", "farmer_1"));
         if (snap.exists()) {
@@ -40,15 +49,11 @@ export default function Dashboard() {
           }
           if (data.totalAnimals) {
             setTotalAnimals(data.totalAnimals);
-            localStorage.setItem("totalAnimals", data.totalAnimals);
+            localStorage.setItem("totalAnimals", String(data.totalAnimals));
           }
         }
       } catch (e) {
-        // Fallback to localStorage
-        const n = localStorage.getItem("farmerName");
-        if (n) { setFarmerName(n); setInitials(n[0]?.toUpperCase() || "F"); }
-        const a = localStorage.getItem("totalAnimals");
-        if (a) setTotalAnimals(a);
+        console.error("Firebase load error:", e);
       }
     }
 
@@ -67,73 +72,92 @@ export default function Dashboard() {
   }, []);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good Morning 🌅" : hour < 17 ? "Good Afternoon ☀️" : "Good Evening 🌙";
+  const greeting    = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const greetEmoji  = hour < 12 ? "🌅" : hour < 17 ? "☀️" : "🌙";
+  const displayName = farmerName || "Farmer";
 
   return (
     <div className="dash-container">
-      {/* Header */}
+
+      {/* ── Header ── */}
       <div className="dash-header">
-        <div>
-          <p className="dash-greeting">{greeting}</p>
-          <h1 className="dash-name">{farmerName}</h1>
+        <div className="header-left">
+          <p className="dash-greeting">{greeting} {greetEmoji}</p>
+          <h1 className="dash-name">{displayName}</h1>
         </div>
         <div className="avatar-circle" onClick={() => navigate("/profile")}>
           {initials}
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="stats-grid">
+      {/* ── Stats ── */}
+      <div className="stats-row">
         <div className="stat-card" onClick={() => navigate("/profile")}>
-          <span className="stat-icon">🐄</span>
-          <p className="stat-val">{totalAnimals ?? "—"}</p>
-          <p className="stat-label">Total Livestock</p>
+          <div className="stat-icon-wrap green">🐄</div>
+          <div>
+            <p className="stat-val">{totalAnimals ?? "—"}</p>
+            <p className="stat-label">Total Livestock</p>
+          </div>
         </div>
         <div className="stat-card" onClick={() => navigate("/milk")}>
-          <span className="stat-icon">🥛</span>
-          <p className="stat-val">{milkToday !== null ? `${milkToday}L` : "—"}</p>
-          <p className="stat-label">Today's Milk</p>
+          <div className="stat-icon-wrap blue">🥛</div>
+          <div>
+            <p className="stat-val">{milkToday !== null ? `${milkToday}L` : "—"}</p>
+            <p className="stat-label">Today's Milk</p>
+          </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <p className="section-title">Quick Actions</p>
+      {/* ── Quick Actions ── */}
+      <p className="section-label">Quick Actions</p>
       <div className="quick-grid">
         <QuickAction icon="📚" label="Breed Encyclopedia" color="#E8F5E9" tc="#2D6A4F" onClick={() => navigate("/breeds")} />
-        <QuickAction icon="💉" label="Vaccine Guide" color="#FFEBEE" tc="#C62828" onClick={() => navigate("/vaccines")} />
-        <QuickAction icon="🔍" label="Scan Animal" color="#E3F2FD" tc="#1565C0" onClick={() => navigate("/scan")} />
-        <QuickAction icon="❤️" label="Health Check" color="#FCE4EC" tc="#880E4F" onClick={() => navigate("/health")} />
+        <QuickAction icon="💉" label="Vaccine Guide"      color="#FFEBEE" tc="#C62828" onClick={() => navigate("/vaccines")} />
+        <QuickAction icon="🔍" label="Scan Animal"        color="#E3F2FD" tc="#1565C0" onClick={() => navigate("/scan")} />
+        <QuickAction icon="❤️" label="Health Check"       color="#FCE4EC" tc="#880E4F" onClick={() => navigate("/health")} />
       </div>
 
-      {/* Vaccine Alerts */}
-      <p className="section-title">
-        💉 Vaccine Alerts
+      {/* ── Vaccine Alerts ── */}
+      <div className="section-header">
+        <p className="section-label" style={{ margin: 0 }}>💉 Vaccine Alerts</p>
         <span className="see-all" onClick={() => navigate("/vaccines")}>See all →</span>
-      </p>
+      </div>
+
       {VACCINE_ALERTS.map((alert, i) => {
         const style = URGENCY_STYLE[alert.urgency];
         return (
-          <div key={i} className="alert-card" style={{ background: style.bg, borderLeftColor: style.border }} onClick={() => navigate("/vaccines")}>
-            <span style={{ fontSize: "22px" }}>{alert.icon}</span>
-            <div style={{ flex: 1 }}>
+          <div
+            key={i}
+            className="alert-card"
+            style={{ background: style.bg, borderLeftColor: style.border }}
+            onClick={() => navigate("/vaccines")}
+          >
+            <div className="alert-dot" style={{ background: style.dot }} />
+            <span className="alert-icon-text">{alert.icon}</span>
+            <div className="alert-body">
               <p className="alert-name">{alert.name}</p>
               <p className="alert-detail">{alert.detail}</p>
               <p className="alert-days" style={{ color: style.color }}>
-                {alert.daysUntil <= 3 ? "🔴" : alert.daysUntil <= 15 ? "🟡" : "🟢"} Due in {alert.daysUntil} days
+                Due in {alert.daysUntil} day{alert.daysUntil !== 1 ? "s" : ""}
               </p>
             </div>
-            <span className="urgency-badge" style={{ color: style.color }}>{style.badge}</span>
+            <span className="urgency-badge" style={{ color: style.color, borderColor: style.border }}>
+              {style.badge}
+            </span>
           </div>
         );
       })}
 
-      {/* Today's Tip */}
-      <p className="section-title" style={{ marginTop: "20px" }}>💡 Today's Tip</p>
+      {/* ── Today's Tip ── */}
+      <p className="section-label" style={{ marginTop: "24px" }}>💡 Today's Tip</p>
       <div className="tip-banner">
+        <span className="tip-emoji">🌡️</span>
         <p className="tip-text">
-          🌡️ It's hot outside! Ensure your animals have shaded areas and plenty of drinking water to maintain milk yield and prevent heat stress.
+          It's hot outside! Ensure your animals have shaded areas and plenty of drinking water to maintain milk yield and prevent heat stress.
         </p>
       </div>
+
+      <div style={{ height: "80px" }} />
     </div>
   );
 }

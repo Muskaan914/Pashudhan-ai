@@ -16,16 +16,16 @@ function App() {
     <Router>
       <div className="main-content">
         <Routes>
-          <Route path="/"              element={<Dashboard />} />
-          <Route path="/dashboard"     element={<Dashboard />} />
-          <Route path="/health"        element={<HealthTracking />} />
-          <Route path="/scan"          element={<ImageScanner />} />
-          <Route path="/milk"          element={<MilkProduction />} />
-          <Route path="/chat"          element={<ChatbotHelper />} />
-          <Route path="/profile"       element={<FarmerProfile />} />
-          <Route path="/breeds"        element={<BreedEncyclopedia />} />
-          <Route path="/vaccines"      element={<VaccineInfo />} />
-          <Route path="*"              element={<Dashboard />} />
+          <Route path="/"          element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/health"    element={<HealthTracking />} />
+          <Route path="/scan"      element={<ImageScanner />} />
+          <Route path="/milk"      element={<MilkProduction />} />
+          <Route path="/chat"      element={<ChatbotHelper />} />
+          <Route path="/profile"   element={<FarmerProfile />} />
+          <Route path="/breeds"    element={<BreedEncyclopedia />} />
+          <Route path="/vaccines"  element={<VaccineInfo />} />
+          <Route path="*"          element={<Dashboard />} />
         </Routes>
       </div>
       <Navigation />
