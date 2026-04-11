@@ -1,39 +1,16 @@
-// src/pages/Dashboard.jsx — Updated with vaccine alerts + quick links
+// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getWeeklyMilk } from "../services/api";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "./Dashboard.css";
 
-// ── Vaccine alert schedule ────────────────────────────────────────────────
 const VACCINE_ALERTS = [
-  {
-    name: "FMD Vaccine Due",
-    detail: "Foot & Mouth Disease — give to all cattle & buffalo",
-    urgency: "urgent",    // red
-    icon: "💉",
-    daysUntil: 3,
-  },
-  {
-    name: "HS Vaccine Reminder",
-    detail: "Haemorrhagic Septicaemia — before monsoon season",
-    urgency: "warning",   // orange
-    icon: "🩺",
-    daysUntil: 15,
-  },
-  {
-    name: "BQ Vaccine Due",
-    detail: "Black Quarter — for young cattle 6 months–2 years",
-    urgency: "warning",
-    icon: "⚕️",
-    daysUntil: 20,
-  },
-  {
-    name: "Deworming Due",
-    detail: "Regular deworming every 3 months for all livestock",
-    urgency: "info",      // green
-    icon: "💊",
-    daysUntil: 30,
-  },
+  { name: "FMD Vaccine Due", detail: "Foot & Mouth Disease — all cattle & buffalo", urgency: "urgent", icon: "💉", daysUntil: 3 },
+  { name: "HS Vaccine Reminder", detail: "Haemorrhagic Septicaemia — before monsoon", urgency: "warning", icon: "🩺", daysUntil: 15 },
+  { name: "BQ Vaccine Due", detail: "Black Quarter — young cattle 6 months–2 years", urgency: "warning", icon: "⚕️", daysUntil: 20 },
+  { name: "Deworming Due", detail: "Regular deworming every 3 months", urgency: "info", icon: "💊", daysUntil: 30 },
 ];
 
 const URGENCY_STYLE = {
@@ -44,30 +21,53 @@ const URGENCY_STYLE = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [milkToday, setMilkToday]   = useState(0);
-  const [totalAnimals, setTotalAnimals] = useState(0);
-  const [farmerName, setFarmerName] = useState("Farmer");
+  const [milkToday, setMilkToday]       = useState(null);
+  const [totalAnimals, setTotalAnimals] = useState(null);
+  const [farmerName, setFarmerName]     = useState("Farmer");
+  const [initials, setInitials]         = useState("F");
 
   useEffect(() => {
-    // Load farmer name from Firebase or localStorage
-    const savedName = localStorage.getItem("farmerName") || "Farmer";
-    setFarmerName(savedName);
-
-    // Load total animals from localStorage (set in FarmerProfile)
-    const animals = localStorage.getItem("totalAnimals") || "0";
-    setTotalAnimals(animals);
-
-    // Load today's milk
-    getWeeklyMilk().then(data => {
-      if (data.success && data.weekly?.length > 0) {
-        const today = data.weekly[data.weekly.length - 1];
-        setMilkToday(today?.liters || 0);
+    // Load from Firebase
+    async function loadProfile() {
+      try {
+        const snap = await getDoc(doc(db, "farmers", "farmer_1"));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.name) {
+            setFarmerName(data.name);
+            setInitials(data.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2));
+            localStorage.setItem("farmerName", data.name);
+          }
+          if (data.totalAnimals) {
+            setTotalAnimals(data.totalAnimals);
+            localStorage.setItem("totalAnimals", data.totalAnimals);
+          }
+        }
+      } catch (e) {
+        // Fallback to localStorage
+        const n = localStorage.getItem("farmerName");
+        if (n) { setFarmerName(n); setInitials(n[0]?.toUpperCase() || "F"); }
+        const a = localStorage.getItem("totalAnimals");
+        if (a) setTotalAnimals(a);
       }
-    }).catch(() => {});
+    }
+
+    async function loadMilk() {
+      try {
+        const data = await getWeeklyMilk();
+        if (data.success && data.weekly?.length > 0) {
+          const today = data.weekly[data.weekly.length - 1];
+          setMilkToday(today?.liters ?? 0);
+        }
+      } catch (e) {}
+    }
+
+    loadProfile();
+    loadMilk();
   }, []);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Namaste 🌅" : hour < 17 ? "Good Afternoon ☀️" : "Good Evening 🌙";
+  const greeting = hour < 12 ? "Good Morning 🌅" : hour < 17 ? "Good Afternoon ☀️" : "Good Evening 🌙";
 
   return (
     <div className="dash-container">
@@ -78,20 +78,20 @@ export default function Dashboard() {
           <h1 className="dash-name">{farmerName}</h1>
         </div>
         <div className="avatar-circle" onClick={() => navigate("/profile")}>
-          {farmerName[0]?.toUpperCase() || "F"}
+          {initials}
         </div>
       </div>
 
       {/* Stats */}
       <div className="stats-grid">
-        <div className="stat-card" onClick={() => navigate("/scan")}>
-          <span className="stat-icon">〜</span>
-          <p className="stat-val">{totalAnimals || "—"}</p>
+        <div className="stat-card" onClick={() => navigate("/profile")}>
+          <span className="stat-icon">🐄</span>
+          <p className="stat-val">{totalAnimals ?? "—"}</p>
           <p className="stat-label">Total Livestock</p>
         </div>
         <div className="stat-card" onClick={() => navigate("/milk")}>
-          <span className="stat-icon" style={{ color: "#1565C0" }}>◈</span>
-          <p className="stat-val">{milkToday > 0 ? `${milkToday}L` : "—"}</p>
+          <span className="stat-icon">🥛</span>
+          <p className="stat-val">{milkToday !== null ? `${milkToday}L` : "—"}</p>
           <p className="stat-label">Today's Milk</p>
         </div>
       </div>
@@ -99,10 +99,10 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <p className="section-title">Quick Actions</p>
       <div className="quick-grid">
-        <QuickAction icon="🐄" label="Breed\nEncyclopedia" color="#E8F5E9" tc="#2D6A4F" onClick={() => navigate("/breeds")} />
-        <QuickAction icon="💉" label="Vaccine\nGuide" color="#FFEBEE" tc="#C62828" onClick={() => navigate("/vaccines")} />
-        <QuickAction icon="🔍" label="Scan\nAnimal" color="#E3F2FD" tc="#1565C0" onClick={() => navigate("/scan")} />
-        <QuickAction icon="❤️" label="Health\nCheck" color="#FCE4EC" tc="#880E4F" onClick={() => navigate("/health")} />
+        <QuickAction icon="📚" label="Breed Encyclopedia" color="#E8F5E9" tc="#2D6A4F" onClick={() => navigate("/breeds")} />
+        <QuickAction icon="💉" label="Vaccine Guide" color="#FFEBEE" tc="#C62828" onClick={() => navigate("/vaccines")} />
+        <QuickAction icon="🔍" label="Scan Animal" color="#E3F2FD" tc="#1565C0" onClick={() => navigate("/scan")} />
+        <QuickAction icon="❤️" label="Health Check" color="#FCE4EC" tc="#880E4F" onClick={() => navigate("/health")} />
       </div>
 
       {/* Vaccine Alerts */}
@@ -110,37 +110,28 @@ export default function Dashboard() {
         💉 Vaccine Alerts
         <span className="see-all" onClick={() => navigate("/vaccines")}>See all →</span>
       </p>
-
       {VACCINE_ALERTS.map((alert, i) => {
         const style = URGENCY_STYLE[alert.urgency];
         return (
-          <div
-            key={i}
-            className="alert-card"
-            style={{ background: style.bg, borderLeftColor: style.border }}
-            onClick={() => navigate("/vaccines")}
-          >
-            <span style={{ fontSize: "20px" }}>{alert.icon}</span>
+          <div key={i} className="alert-card" style={{ background: style.bg, borderLeftColor: style.border }} onClick={() => navigate("/vaccines")}>
+            <span style={{ fontSize: "22px" }}>{alert.icon}</span>
             <div style={{ flex: 1 }}>
               <p className="alert-name">{alert.name}</p>
               <p className="alert-detail">{alert.detail}</p>
               <p className="alert-days" style={{ color: style.color }}>
-                {alert.daysUntil <= 3 ? "🔴 Due in " : alert.daysUntil <= 15 ? "🟡 Due in " : "🟢 Due in "}
-                {alert.daysUntil} days
+                {alert.daysUntil <= 3 ? "🔴" : alert.daysUntil <= 15 ? "🟡" : "🟢"} Due in {alert.daysUntil} days
               </p>
             </div>
-            <span className="urgency-badge" style={{ background: "#fff", color: style.color }}>
-              {style.badge}
-            </span>
+            <span className="urgency-badge" style={{ color: style.color }}>{style.badge}</span>
           </div>
         );
       })}
 
-      {/* Today's tip */}
-      <p className="section-title">💡 Today's Tip</p>
+      {/* Today's Tip */}
+      <p className="section-title" style={{ marginTop: "20px" }}>💡 Today's Tip</p>
       <div className="tip-banner">
         <p className="tip-text">
-          It's hot outside. Ensure your animals have shaded standing areas and plenty of drinking water to maintain milk yield and prevent heat stress.
+          🌡️ It's hot outside! Ensure your animals have shaded areas and plenty of drinking water to maintain milk yield and prevent heat stress.
         </p>
       </div>
     </div>
@@ -150,7 +141,7 @@ export default function Dashboard() {
 function QuickAction({ icon, label, color, tc, onClick }) {
   return (
     <div className="quick-card" style={{ background: color }} onClick={onClick}>
-      <span style={{ fontSize: "24px" }}>{icon}</span>
+      <span className="quick-icon">{icon}</span>
       <p className="quick-label" style={{ color: tc }}>{label}</p>
     </div>
   );
