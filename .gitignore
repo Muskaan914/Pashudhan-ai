@@ -1,0 +1,12 @@
+
+annotations/
+brain/
+browser_recordings/
+conversations/
+implicit/
+knowledge/
+prompting/
+installation_id
+mcp_config.json
+.agents/
+stitch-skills/
