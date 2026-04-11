@@ -564,16 +564,16 @@ export async function scanAnimal(imageFile) {
     if (!res.ok) throw new Error("HF API error " + res.status);
 
     const data = await res.json();
-    if (!data.success) throw new Error("Prediction failed");
-
-    // ── Confidence threshold: reject non-cattle images ──
-    if (data.confidence < 40) {
+    // HF model rejected — not cattle (low confidence or ambiguous)
+    if (!data.success && data.invalid) {
       return {
         success: false,
         invalid: true,
         error: "❌ No cattle detected. Please upload a clear photo of a cow or buffalo.",
       };
     }
+
+    if (!data.success) throw new Error("Prediction failed");
 
     // Match returned breed key to our database
     const breedKey = data.breed;
