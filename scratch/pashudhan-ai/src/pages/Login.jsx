@@ -1,12 +1,13 @@
 // src/pages/Login.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
 } from "firebase/auth";
 import "./Login.css";
 
@@ -19,6 +20,17 @@ export default function Login() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [showPass, setShowPass] = useState(false);
+
+  // Handle Google redirect result on page load
+  useEffect(() => {
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) {
+        const userName = result.user.displayName || "Farmer";
+        localStorage.setItem("farmerName", userName);
+        navigate("/dashboard");
+      }
+    }).catch(() => {});
+  }, []);
 
   async function handleSubmit() {
     if (!email || !password) { setError("Please fill all fields."); return; }
@@ -51,13 +63,10 @@ export default function Login() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const userName = result.user.displayName || "Farmer";
-      localStorage.setItem("farmerName", userName);
-      navigate("/dashboard");
+      await signInWithRedirect(auth, provider);
+      // Page will redirect — no need to navigate here
     } catch (e) {
       setError("Google sign-in failed. Please try again.");
-    } finally {
       setLoading(false);
     }
   }
