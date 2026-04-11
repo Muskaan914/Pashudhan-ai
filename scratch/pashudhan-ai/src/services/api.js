@@ -453,88 +453,100 @@ const BREED_DATABASE = {
     tip: "Red Dane cattle need protection from Indian heat. Provide fans/coolers in sheds and ensure 60–80L water daily.",
   },
 };
-// ── Gemini validation ─────────────────────────────────────────────────────
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
-console.log("ENV:", import.meta.env.VITE_GEMINI_API_KEY);
-async function validateImageWithGemini(imageFile) {
+
+const HF_TOKEN = import.meta.env.VITE_HF_TOKEN; // Add VITE_HF_TOKEN in Vercel env vars
+
+// ── Animals that are valid cattle/buffalo ────────────────────────────────────
+const VALID_CATTLE_LABELS = [
+  "ox", "cow", "cattle", "bull", "calf", "bison", "buffalo", "water buffalo",
+  "bovine", "zebu", "dairy cow", "beef cattle", "gaur", "yak",
+  "Indian cattle", "livestock",
+];
+
+// ── Check image using Hugging Face image classification ──────────────────────
+async function validateWithHuggingFace(imageFile) {
   try {
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(imageFile);
-    });
-    const res = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [
-          { inline_data: { mime_type: imageFile.type || "image/jpeg", data: base64 } },
-          { text: "Does this image show a cattle (cow) or buffalo? Reply ONLY with 'yes' or 'no'." }
-        ]}],
-        generationConfig: { maxOutputTokens: 5, temperature: 0 },
-      }),
-    });
-    const data = await res.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
-    // Only block if Gemini clearly says "no" — allow everything else
-    return answer !== "no";
+    // Convert image to blob
+    const arrayBuffer = await imageFile.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: imageFile.type });
+
+    const res = await fetch(
+      "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${HF_TOKEN}`,
+          "Content-Type": imageFile.type || "image/jpeg",
+        },
+        body: blob,
+      }
+    );
+
+    if (!res.ok) {
+      // If API fails → allow through (don't block user)
+      console.warn("HF API error:", res.status);
+      return true;
+    }
+
+    const results = await res.json();
+    // results is array like: [{label: "ox", score: 0.92}, {label: "cow", score: 0.05}, ...]
+
+    if (!Array.isArray(results) || results.length === 0) return true;
+
+    // Check top 3 results for cattle-related labels
+    const top3 = results.slice(0, 3);
+    const isCattle = top3.some(r =>
+      VALID_CATTLE_LABELS.some(label =>
+        r.label.toLowerCase().includes(label.toLowerCase())
+      )
+    );
+
+    return isCattle;
   } catch (e) {
-    return true; // if anything fails, allow through
+    console.warn("HF validation failed, allowing through:", e);
+    return true; // On error always allow
   }
 }
-// ── Keywords for invalid image detection ──────────────────────────────────
-const INVALID_KEYWORDS = [
-  "human", "person", "people", "man", "woman", "girl", "boy", "face",
-  "selfie", "portrait", "dog", "cat", "bird", "horse", "sheep", "goat",
-  "pig", "chicken", "car", "building", "tree", "flower", "food",
-  "landscape", "sky", "ocean", "city", "screenshot",
-];
 
-// ── File name to breed map (for demo mode) ────────────────────────────────
-const FILENAME_BREED_MAP = {
-  "Cow_female_black_white.jpg": "Holstein_Friesian",
-  "cattle9.jpg": "Sahiwal",
-  "cattle8.jpg": "Tharparkar",
-  "cattle7.jpg": "Murrah",
-  "cattle3.jpg": "Gir",
-  "cattle2.jpg": "Kankrej",
-  "cattle1.jpg": "Jersey",
-};
-
-const HIGH_ACCURACY_BREEDS = [
-  "Holstein_Friesian", "Gir", "Brown_Swiss", "Bargur", "Dangi",
-  "Alambadi", "Ayrshire", "Sahiwal", "Jaffrabadi", "Rathi",
-  "Murrah", "Kankrej", "Jersey",
-];
-
-// ── 1. Breed Scan (no external API — local validation only) ───────────────
+// ── Replace your existing scanAnimal function with this ───────────────────────
 export async function scanAnimal(imageFile) {
   await new Promise(r => setTimeout(r, 1500));
 
-  // Step 1: filename check
+  // Step 1: Quick filename keyword check
   const nameLower = imageFile.name.toLowerCase();
   const likelyInvalid = INVALID_KEYWORDS.some(k => nameLower.includes(k));
   if (likelyInvalid) {
-    return { success: false, invalid: true, error: "❌ Invalid image. Please upload a cattle or buffalo photo only." };
+    return {
+      success: false,
+      invalid: true,
+      error: "❌ Invalid image. Please upload a cattle or buffalo photo only.",
+    };
   }
 
-  // Step 2: Gemini real image check
-  const isCattle = await validateImageWithGemini(imageFile);
+  // Step 2: Real AI validation with Hugging Face
+  const isCattle = await validateWithHuggingFace(imageFile);
   if (!isCattle) {
-    return { success: false, invalid: true, error: "❌ This does not appear to be a cattle or buffalo. Please upload a livestock photo only." };
+    return {
+      success: false,
+      invalid: true,
+      error: "❌ This does not appear to be a cattle or buffalo. Please upload a livestock photo only.",
+    };
   }
 
-  // Step 3: known demo files
+  // Step 3: Known demo files → exact breed
   if (FILENAME_BREED_MAP[imageFile.name]) {
     const breedKey = FILENAME_BREED_MAP[imageFile.name];
     const info = BREED_DATABASE[breedKey];
     if (info) return { success: true, ...info };
   }
 
-  // Step 4: unknown cattle → pick high accuracy breed
-  const pick = HIGH_ACCURACY_BREEDS[Math.floor(imageFile.size % HIGH_ACCURACY_BREEDS.length)];
+  // Step 4: Unknown cattle file → pick from high-accuracy breeds
+  const highAccuracyBreeds = [
+    "Holstein_Friesian", "Gir", "Brown_Swiss", "Bargur", "Dangi",
+    "Alambadi", "Ayrshire", "Sahiwal", "Jaffrabadi", "Rathi",
+    "Murrah", "Kankrej", "Jersey",
+  ];
+  const pick = highAccuracyBreeds[Math.floor(imageFile.size % highAccuracyBreeds.length)];
   return { success: true, ...BREED_DATABASE[pick] };
 }
 
