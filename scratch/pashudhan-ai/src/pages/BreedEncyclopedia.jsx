@@ -19,22 +19,21 @@ const HEAT_COLORS = {
 
 // ✅ UPDATED FULL HD IMAGE MAPPING
 const BREED_PHOTOS = {
-  "Gir": "https://upload.wikimedia.org/wikipedia/commons/7/72/Gir_cow.jpg",
-  "Sahiwal": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Sahiwal_Bull.jpg",
-  "Tharparkar": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Tharparkar_cattle.jpg",
-  "Kankrej": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Kankrej_cattle.jpg",
-  "Ongole": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ongole_cattle.jpg",
-  "Hariana": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Hariana_cattle.jpg",
-  "Red Sindhi": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Red_Sindhi_bull.jpg",
+  "Gir": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Gir_cow.jpg/640px-Gir_cow.jpg",
+  "Sahiwal": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sahiwal_Bull.jpg/640px-Sahiwal_Bull.jpg",
+  "Tharparkar": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Tharparkar_cattle.jpg/640px-Tharparkar_cattle.jpg",
+  "Kankrej": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Kankrej_cattle.jpg/640px-Kankrej_cattle.jpg",
+  "Ongole": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ongole_cattle.jpg/640px-Ongole_cattle.jpg",
+  "Hariana": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Hariana_cattle.jpg/640px-Hariana_cattle.jpg",
+  "Red Sindhi": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red_Sindhi_bull.jpg/640px-Red_Sindhi_bull.jpg",
 
-  "Murrah Buffalo": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Murrah_buffalo.jpg",
-  "Jaffarabadi Buffalo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Jaffarabadi_buffalo.jpg",
+  "Murrah Buffalo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Murrah_buffalo.jpg/640px-Murrah_buffalo.jpg",
+  "Jaffarabadi Buffalo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Jaffarabadi_buffalo.jpg/640px-Jaffarabadi_buffalo.jpg",
 
-  "Holstein Friesian": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Holstein_Friesian_cow.jpg",
-  "Jersey": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Jersey_cow_and_calf.jpg",
-  "Brown Swiss": "https://upload.wikimedia.org/wikipedia/commons/4/43/Brown_Swiss_bull.jpg"
+  "Holstein Friesian": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Holstein_Friesian_cow_2_tj.jpg/640px-Holstein_Friesian_cow_2_tj.jpg",
+  "Jersey": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Jersey_cow_and_calf.jpg/640px-Jersey_cow_and_calf.jpg",
+  "Brown Swiss": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Brown_Swiss_bull.jpg/640px-Brown_Swiss_bull.jpg"
 };
-
 // fallback
 const TYPE_FALLBACK = {
   "Cow": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Holstein_Friesian_cow.jpg",
@@ -48,12 +47,9 @@ function getPhoto(breedName, type) {
 
   return (
     BREED_PHOTOS[cleanName] ||
-    `https://source.unsplash.com/400x300/?${cleanName},cow` ||
-    TYPE_FALLBACK[type] ||
-    TYPE_FALLBACK["Cow"]
+    `https://source.unsplash.com/400x300/?${cleanName},cattle`
   );
 }
-
 const ALL_BREEDS = Object.values(BREED_DATABASE);
 
 // ---- REST OF YOUR CODE SAME (NO CHANGE) ----
@@ -114,13 +110,13 @@ function BreedDetail({ breed, onBack }) {
       {/* ✅ HERO IMAGE */}
       <div style={{ borderRadius: "20px", overflow: "hidden", margin: "10px" }}>
         <img
-          src={photo}
-          alt={breed.breed}
-          style={{ width: "100%", height: "250px", objectFit: "cover" }}
-          onError={(e) => {
-            e.target.src = `https://source.unsplash.com/800x500/?${breed.breed},cow`;
-          }}
-        />
+  src={photo}
+  alt={breed.breed}
+  className="breed-photo"
+  onError={(e) => {
+    e.target.src = `https://source.unsplash.com/400x300/?${breed.breed},cow`;
+  }}
+/>
       </div>
 
       {/* Breed Info */}
