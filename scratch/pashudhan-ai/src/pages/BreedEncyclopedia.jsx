@@ -17,6 +17,38 @@ const HEAT_COLORS = {
   "Poor":      { bg: "#F3E5F5", color: "#6A1B9A" },
 };
 
+// ── Real breed photos (free Wikimedia/public domain) ──────────────────────
+const BREED_PHOTOS = {
+  "Gir":                 "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Gir_cow.jpg/320px-Gir_cow.jpg",
+  "Sahiwal":             "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sahiwal_Bull.jpg/320px-Sahiwal_Bull.jpg",
+  "Tharparkar":          "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Tharparkar_cattle.jpg/320px-Tharparkar_cattle.jpg",
+  "Kankrej":             "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Kankrej_cattle.jpg/320px-Kankrej_cattle.jpg",
+  "Ongole":              "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ongole_cattle.jpg/320px-Ongole_cattle.jpg",
+  "Red Sindhi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red_Sindhi_bull.jpg/320px-Red_Sindhi_bull.jpg",
+  "Hariana":             "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Hariana_cattle.jpg/320px-Hariana_cattle.jpg",
+  "Holstein Friesian":   "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Holstein_Friesian_cow_2_tj.jpg/320px-Holstein_Friesian_cow_2_tj.jpg",
+  "Jersey":              "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Jersey_cow_and_calf.jpg/320px-Jersey_cow_and_calf.jpg",
+  "Brown Swiss":         "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Brown_Swiss_bull.jpg/320px-Brown_Swiss_bull.jpg",
+  "Ayrshire":            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Ayrshire_cattle_on_pasture.jpg/320px-Ayrshire_cattle_on_pasture.jpg",
+  "Guernsey":            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Guernsey_cattle.jpg/320px-Guernsey_cattle.jpg",
+  "Murrah Buffalo":      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Murrah_buffalo.jpg/320px-Murrah_buffalo.jpg",
+  "Nili-Ravi Buffalo":   "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Nili-Ravi_buffalo.jpg/320px-Nili-Ravi_buffalo.jpg",
+  "Surti Buffalo":       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Surti_buffalo.jpg/320px-Surti_buffalo.jpg",
+  "Jaffarabadi Buffalo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Jaffarabadi_buffalo.jpg/320px-Jaffarabadi_buffalo.jpg",
+  "Mehsana Buffalo":     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mehsana_buffalo.jpg/320px-Mehsana_buffalo.jpg",
+  "Bhadawari Buffalo":   "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Bhadawari_buffalo.jpg/320px-Bhadawari_buffalo.jpg",
+};
+
+const TYPE_FALLBACK = {
+  "Cow":         "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Holstein_Friesian_cow_2_tj.jpg/320px-Holstein_Friesian_cow_2_tj.jpg",
+  "Buffalo":     "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Murrah_buffalo.jpg/320px-Murrah_buffalo.jpg",
+  "Cow/Buffalo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Holstein_Friesian_cow_2_tj.jpg/320px-Holstein_Friesian_cow_2_tj.jpg",
+};
+
+function getPhoto(breedName, type) {
+  return BREED_PHOTOS[breedName] || TYPE_FALLBACK[type] || TYPE_FALLBACK["Cow"];
+}
+
 const ALL_BREEDS = Object.values(BREED_DATABASE);
 
 export default function BreedEncyclopedia() {
@@ -39,10 +71,14 @@ export default function BreedEncyclopedia() {
 
   return (
     <div className="enc-container">
-      <p className="page-label">Knowledge Base</p>
-      <h1 className="page-title">Breed Encyclopedia</h1>
 
-      {/* Search */}
+      {/* ── Header ── */}
+      <div className="enc-header-bg">
+        <p className="page-label">Knowledge Base</p>
+        <h1 className="page-title">Breed Encyclopedia</h1>
+      </div>
+
+      {/* ── Search ── */}
       <div className="search-bar">
         <span className="search-icon">🔍</span>
         <input
@@ -56,7 +92,7 @@ export default function BreedEncyclopedia() {
         )}
       </div>
 
-      {/* Filter tabs */}
+      {/* ── Filter tabs ── */}
       <div className="filter-tabs">
         {["All", "Cow", "Buffalo"].map(f => (
           <button
@@ -78,29 +114,41 @@ export default function BreedEncyclopedia() {
         {filtered.length} breed{filtered.length !== 1 ? "s" : ""} found
       </p>
 
-      {/* Breed grid */}
+      {/* ── Breed Cards ── */}
       <div className="breed-grid">
         {filtered.map(breed => {
-          const typeStyle = TYPE_COLORS[breed.type] || TYPE_COLORS["Cow"];
+          const ts    = TYPE_COLORS[breed.type] || TYPE_COLORS["Cow"];
+          const photo = getPhoto(breed.breed, breed.type);
           return (
             <div
               key={breed.breed}
               className="breed-card"
               onClick={() => setSelected(breed)}
             >
-              <div className="breed-icon-wrap" style={{ background: typeStyle.bg }}>
-                <span className="breed-icon">{typeStyle.icon}</span>
+              {/* Photo thumbnail */}
+              <div className="breed-photo-wrap" style={{ background: ts.bg }}>
+                <img
+                  src={photo}
+                  alt={breed.breed}
+                  className="breed-photo"
+                  onError={e => {
+                    e.target.style.display = "none";
+                    e.target.parentNode.querySelector(".breed-photo-fallback").style.display = "flex";
+                  }}
+                />
+                <div className="breed-photo-fallback" style={{ display: "none" }}>
+                  <span style={{ fontSize: "28px" }}>{ts.icon}</span>
+                </div>
               </div>
+
               <div className="breed-card-body">
                 <p className="breed-name">{breed.breed}</p>
                 <p className="breed-origin">📍 {breed.origin}</p>
                 <div className="breed-tags">
-                  <span className="breed-tag" style={{ background: typeStyle.bg, color: typeStyle.color }}>
+                  <span className="breed-tag" style={{ background: ts.bg, color: ts.color }}>
                     {breed.type}
                   </span>
-                  <span className="breed-tag milk-tag">
-                    🥛 {breed.milk_yield}
-                  </span>
+                  <span className="breed-tag milk-tag">🥛 {breed.milk_yield}</span>
                 </div>
               </div>
               <span className="breed-arrow">›</span>
@@ -112,7 +160,7 @@ export default function BreedEncyclopedia() {
       {filtered.length === 0 && (
         <div className="no-results">
           <p style={{ fontSize: "40px" }}>🔍</p>
-          <p style={{ fontSize: "16px", color: "#888" }}>No breeds found</p>
+          <p style={{ fontSize: "16px", color: "#888", fontWeight: "700" }}>No breeds found</p>
           <p style={{ fontSize: "13px", color: "#aaa" }}>Try a different search term</p>
         </div>
       )}
@@ -124,31 +172,37 @@ export default function BreedEncyclopedia() {
 
 // ── Breed Detail ──────────────────────────────────────────────────────────
 function BreedDetail({ breed, onBack }) {
-  const typeStyle = TYPE_COLORS[breed.type] || TYPE_COLORS["Cow"];
-  const heatStyle = HEAT_COLORS[breed.heat_tolerance] || HEAT_COLORS["Good"];
+  const ts    = TYPE_COLORS[breed.type] || TYPE_COLORS["Cow"];
+  const hs    = HEAT_COLORS[breed.heat_tolerance] || HEAT_COLORS["Good"];
+  const photo = getPhoto(breed.breed, breed.type);
 
   return (
     <div className="enc-container">
       <button className="back-btn" onClick={onBack}>← Back to Encyclopedia</button>
 
-      {/* Hero */}
-      <div className="detail-hero" style={{ background: typeStyle.bg }}>
-        <span className="detail-icon">{typeStyle.icon}</span>
-        <div>
+      {/* ── Hero photo banner ── */}
+      <div className="detail-hero-photo">
+        <img
+          src={photo}
+          alt={breed.breed}
+          className="detail-hero-img"
+          onError={e => { e.target.src = TYPE_FALLBACK[breed.type]; }}
+        />
+        <div className="detail-hero-overlay">
           <h1 className="detail-breed-name">{breed.breed}</h1>
           <p className="detail-origin">📍 {breed.origin}</p>
           <div className="detail-badges">
-            <span className="badge" style={{ background: "#fff", color: typeStyle.color, border: `1.5px solid ${typeStyle.color}` }}>
-              {breed.type}
+            <span className="badge badge-white" style={{ color: ts.color }}>
+              {ts.icon} {breed.type}
             </span>
-            <span className="badge" style={{ background: heatStyle.bg, color: heatStyle.color }}>
+            <span className="badge" style={{ background: hs.bg, color: hs.color }}>
               🌡️ {breed.heat_tolerance}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Model accuracy bar */}
+      {/* ── Model accuracy bar ── */}
       <div className="accuracy-bar-wrap">
         <div className="accuracy-bar-header">
           <span>Model Accuracy</span>
@@ -159,7 +213,7 @@ function BreedDetail({ breed, onBack }) {
         </div>
       </div>
 
-      {/* Parameters */}
+      {/* ── Parameters ── */}
       <div className="detail-section">
         <h2 className="section-title">📊 Breed Parameters</h2>
         <div className="param-grid">
@@ -174,7 +228,7 @@ function BreedDetail({ breed, onBack }) {
         </div>
       </div>
 
-      {/* Health */}
+      {/* ── Health ── */}
       <div className="detail-section">
         <h2 className="section-title">🏥 Health Profile</h2>
         <div className="detail-card">
@@ -183,7 +237,7 @@ function BreedDetail({ breed, onBack }) {
         </div>
       </div>
 
-      {/* Care tip */}
+      {/* ── Care tip ── */}
       {breed.tip && (
         <div className="detail-section">
           <h2 className="section-title">💡 Care Tip</h2>
@@ -193,7 +247,7 @@ function BreedDetail({ breed, onBack }) {
         </div>
       )}
 
-      {/* Vaccines */}
+      {/* ── Vaccines ── */}
       <div className="detail-section">
         <h2 className="section-title">💉 Recommended Vaccines</h2>
         <BreedVaccines breedType={breed.type} />
@@ -209,14 +263,14 @@ function BreedVaccines({ breedType }) {
   const isBuffalo = breedType.includes("Buffalo");
 
   const vaccines = [
-    { name: "FMD (Foot & Mouth)",                schedule: "Every 6 months",              color: "#FFEBEE", tc: "#C62828", forAll: true },
-    { name: "HS (Haemorrhagic Septicaemia)",      schedule: "Annually (before monsoon)",   color: "#FFF3E0", tc: "#E65100", forAll: true },
-    { name: "BQ (Black Quarter)",                 schedule: "Annually",                    color: "#F3E5F5", tc: "#6A1B9A", forCow: true },
-    { name: "Brucellosis",                        schedule: "Once (calves 4–8 months)",    color: "#E8F5E9", tc: "#2D6A4F", forCow: true },
-    { name: "Theileriosis (ECF)",                 schedule: "Once in lifetime",            color: "#E3F2FD", tc: "#1565C0", forCow: true },
-    { name: "Anthrax",                            schedule: "Annually (endemic areas)",    color: "#FFF8E1", tc: "#F57F17", forAll: true },
-    { name: "LSD (Lumpy Skin Disease)",           schedule: "Annually",                    color: "#FCE4EC", tc: "#880E4F", forCow: true },
-    { name: "Surra (Trypanosomiasis)",            schedule: "As needed",                   color: "#E0F2F1", tc: "#00695C", forBuffalo: true },
+    { name: "FMD (Foot & Mouth)",               schedule: "Every 6 months",            color: "#FFEBEE", tc: "#C62828", forAll: true },
+    { name: "HS (Haemorrhagic Septicaemia)",     schedule: "Annually (before monsoon)", color: "#FFF3E0", tc: "#E65100", forAll: true },
+    { name: "BQ (Black Quarter)",                schedule: "Annually",                  color: "#F3E5F5", tc: "#6A1B9A", forCow: true },
+    { name: "Brucellosis",                       schedule: "Once (calves 4–8 months)",  color: "#E8F5E9", tc: "#2D6A4F", forCow: true },
+    { name: "Theileriosis (ECF)",                schedule: "Once in lifetime",          color: "#E3F2FD", tc: "#1565C0", forCow: true },
+    { name: "Anthrax",                           schedule: "Annually (endemic areas)",  color: "#FFF8E1", tc: "#F57F17", forAll: true },
+    { name: "LSD (Lumpy Skin Disease)",          schedule: "Annually",                  color: "#FCE4EC", tc: "#880E4F", forCow: true },
+    { name: "Surra (Trypanosomiasis)",           schedule: "As needed",                 color: "#E0F2F1", tc: "#00695C", forBuffalo: true },
   ].filter(v => v.forAll || (isCow && v.forCow) || (isBuffalo && v.forBuffalo));
 
   return (
@@ -227,9 +281,7 @@ function BreedVaccines({ breedType }) {
             <p className="vaccine-name">{v.name}</p>
             <p className="vaccine-schedule">📅 {v.schedule}</p>
           </div>
-          <span className="vaccine-badge" style={{ background: v.color, color: v.tc }}>
-            Due
-          </span>
+          <span className="vaccine-badge" style={{ background: v.color, color: v.tc }}>Due</span>
         </div>
       ))}
     </div>

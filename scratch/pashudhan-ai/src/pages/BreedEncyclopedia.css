@@ -1,184 +1,193 @@
 /* src/pages/BreedEncyclopedia.css */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .enc-container {
-  font-family: 'DM Sans', sans-serif;
-  background: #F4F6F0;
-  min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 16px 24px;
+  padding: 0 0 90px;
+  background: #F7F9F7;
+  min-height: 100vh;
+  font-family: 'Nunito', sans-serif;
 }
 
-/* ── Page Header ── */
+/* ── Header ── */
+.enc-header-bg {
+  background: linear-gradient(145deg, #1B4332, #2D6A4F);
+  padding: 52px 20px 24px;
+  border-radius: 0 0 28px 28px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(27,67,50,0.2);
+}
+
 .page-label {
   font-size: 12px;
-  color: #8A9E82;
-  font-weight: 600;
-  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.65);
+  font-weight: 700;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  padding-top: 52px;
-  display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .page-title {
-  font-family: 'Poppins', sans-serif;
   font-size: 26px;
-  font-weight: 800;
-  color: #1B2F1A;
-  margin-bottom: 20px;
+  font-weight: 900;
+  color: #fff;
   letter-spacing: -0.5px;
 }
 
-/* ── Search Bar ── */
+/* ── Search ── */
 .search-bar {
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 0 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.search-bar:focus-within {
-  border-color: #2D6A4F;
-}
-
-.search-icon {
-  font-size: 16px;
-  margin-right: 8px;
-  opacity: 0.5;
+  margin: 0 20px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1.5px solid #E0E0E0;
+  gap: 8px;
 }
 
 .search-bar input {
   flex: 1;
   border: none;
   outline: none;
-  font-family: 'DM Sans', sans-serif;
   font-size: 14px;
-  color: #1B2F1A;
   padding: 13px 0;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  color: #333;
   background: transparent;
 }
 
-.search-bar input::placeholder {
-  color: #B0BEA8;
-}
+.search-bar input::placeholder { color: #aaa; }
+.search-icon { font-size: 16px; }
 
 .clear-search {
-  background: none;
+  background: #F0F0F0;
   border: none;
-  font-size: 13px;
-  color: #8A9E82;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
   cursor: pointer;
-  padding: 4px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── Filter Tabs ── */
 .filter-tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  padding: 0 20px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.filter-tabs::-webkit-scrollbar { display: none; }
 
 .filter-tab {
-  flex: 1;
-  border: 1.5px solid #D8E4D0;
-  border-radius: 30px;
-  padding: 9px 6px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  color: #7A8C6E;
-  background: #fff;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: all 0.18s ease;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1.5px solid #E0E0E0;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff;
+  color: #666;
+  white-space: nowrap;
+  transition: all 0.18s;
+  font-family: 'Nunito', sans-serif;
 }
 
 .filter-tab.active {
   background: #2D6A4F;
-  border-color: #2D6A4F;
   color: #fff;
-  box-shadow: 0 3px 10px rgba(45, 106, 79, 0.3);
+  border-color: #2D6A4F;
+  box-shadow: 0 2px 8px rgba(45,106,79,0.3);
 }
 
 .filter-count {
   background: rgba(0,0,0,0.08);
-  border-radius: 20px;
-  padding: 1px 6px;
-  font-size: 10px;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 800;
 }
+.filter-tab.active .filter-count { background: rgba(255,255,255,0.25); }
 
-.filter-tab.active .filter-count {
-  background: rgba(255,255,255,0.25);
-}
-
-/* ── Results Count ── */
 .results-count {
   font-size: 12px;
-  color: #8A9E82;
-  font-weight: 500;
-  margin-bottom: 12px;
+  color: #999;
+  font-weight: 700;
+  padding: 0 20px 10px;
 }
 
-/* ── Breed Grid ── */
+/* ── Breed Cards ── */
 .breed-grid {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 0 20px;
 }
 
 .breed-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 10px 14px 10px 10px;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1.5px solid #F0F0F0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
+.breed-card:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
-.breed-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-}
-
-.breed-icon-wrap {
-  width: 50px;
-  height: 50px;
+/* ── Photo thumbnail ── */
+.breed-photo-wrap {
+  width: 62px;
+  height: 62px;
   border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.breed-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.breed-card:hover .breed-photo { transform: scale(1.06); }
+
+.breed-photo-fallback {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  position: absolute;
+  top: 0; left: 0;
 }
 
-.breed-icon {
-  font-size: 26px;
-}
-
-.breed-card-body {
-  flex: 1;
-  min-width: 0;
-}
+.breed-card-body { flex: 1; min-width: 0; }
 
 .breed-name {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: #1B2F1A;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1B3A2F;
   margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -186,251 +195,255 @@
 }
 
 .breed-origin {
-  font-size: 11px;
-  color: #8A9E82;
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
   margin-bottom: 6px;
 }
 
-.breed-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.breed-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .breed-tag {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
   border-radius: 20px;
-  padding: 2px 8px;
 }
 
-.milk-tag {
-  background: #F0FFF4;
-  color: #2D6A4F;
-}
+.milk-tag { background: #E3F2FD; color: #1565C0; }
 
 .breed-arrow {
   font-size: 22px;
-  color: #C5D4BC;
-  font-weight: 300;
+  color: #CCC;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
-/* ── No Results ── */
+/* ── No results ── */
 .no-results {
   text-align: center;
-  padding: 48px 0;
+  padding: 60px 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: center;
 }
 
-/* ── Back Button ── */
+/* ════════════════════════════════
+   DETAIL PAGE
+════════════════════════════════ */
+
 .back-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 52px;
-  margin-bottom: 20px;
-  background: #fff;
-  border: 1.5px solid #D8E4D0;
-  border-radius: 30px;
-  padding: 9px 16px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  margin: 52px 20px 0;
+  font-size: 14px;
+  font-weight: 700;
   color: #2D6A4F;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.back-btn:active {
   background: #E8F5E9;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
 }
+.back-btn:hover { background: #C8E6C9; }
 
-/* ── Detail Hero ── */
-.detail-hero {
+/* ── Hero photo banner ── */
+.detail-hero-photo {
+  position: relative;
+  margin: 14px 20px 16px;
   border-radius: 20px;
-  padding: 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+  overflow: hidden;
+  height: 200px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
-.detail-icon {
-  font-size: 46px;
-  line-height: 1;
-  flex-shrink: 0;
+.detail-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-hero-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  padding: 16px;
 }
 
 .detail-breed-name {
-  font-family: 'Poppins', sans-serif;
   font-size: 22px;
-  font-weight: 800;
-  color: #1B2F1A;
-  margin-bottom: 4px;
-  letter-spacing: -0.3px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 3px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 
 .detail-origin {
-  font-size: 12px;
-  color: #7A8C6E;
-  margin-bottom: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.detail-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.detail-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .badge {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
+  padding: 4px 12px;
   border-radius: 20px;
-  padding: 4px 10px;
 }
 
-/* ── Accuracy Bar ── */
+.badge-white {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(4px);
+}
+
+/* ── Accuracy bar ── */
 .accuracy-bar-wrap {
+  margin: 0 20px 16px;
   background: #fff;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1.5px solid #F0F0F0;
 }
 
 .accuracy-bar-header {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #8A9E82;
   margin-bottom: 8px;
+  font-size: 13px;
+  color: #888;
+  font-weight: 700;
 }
 
 .accuracy-pct {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
+  font-weight: 900;
   color: #1565C0;
 }
 
 .accuracy-track {
-  background: #EEF2EA;
-  border-radius: 10px;
   height: 8px;
+  background: #F0F0F0;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .accuracy-fill {
   height: 100%;
-  border-radius: 10px;
   background: linear-gradient(90deg, #2D6A4F, #52B788);
+  border-radius: 10px;
   transition: width 0.6s ease;
 }
 
-/* ── Detail Sections ── */
-.detail-section {
-  margin-bottom: 16px;
-}
+/* ── Detail sections ── */
+.detail-section { margin: 0 20px 16px; }
 
 .section-title {
-  font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  font-weight: 700;
-  color: #1B2F1A;
+  font-weight: 800;
+  color: #1B3A2F;
   margin-bottom: 10px;
+  letter-spacing: 0.3px;
 }
 
-.detail-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.health-status-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: #2D6A4F;
-  margin-bottom: 8px;
-}
-
-.detail-text {
-  font-size: 13px;
-  color: #5A6E52;
-  line-height: 1.6;
-}
-
-.tip-card {
-  background: linear-gradient(135deg, #1B3A2F, #2D6A4F);
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.tip-card .detail-text {
-  color: rgba(255,255,255,0.85);
-}
-
-/* ── Param Grid ── */
+/* ── Param grid ── */
 .param-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .param-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  border: 1.5px solid #F0F0F0;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
 
 .param-label {
   font-size: 11px;
-  color: #8A9E82;
+  color: #888;
+  font-weight: 700;
   margin-bottom: 4px;
 }
 
 .param-value {
-  font-family: 'Poppins', sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  color: #1B2F1A;
+  font-weight: 800;
+  color: #1B3A2F;
+  line-height: 1.3;
 }
 
-/* ── Vaccine Rows ── */
+/* ── Detail cards ── */
+.detail-card {
+  background: #F0FFF4;
+  border-radius: 16px;
+  padding: 16px;
+  border-left: 4px solid #43A047;
+}
+
+.health-status-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #2D6A4F;
+  margin-bottom: 6px;
+}
+
+.detail-text {
+  font-size: 13px;
+  color: #555;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.tip-card {
+  background: linear-gradient(135deg, #1B4332, #2D6A4F);
+  border-radius: 16px;
+  padding: 16px;
+}
+.tip-card .detail-text { color: rgba(255,255,255,0.92); }
+
+/* ── Vaccine rows ── */
 .vaccine-row {
-  background: #fff;
-  border-radius: 12px;
-  border-left: 4px solid;
-  padding: 12px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
   margin-bottom: 8px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  border-left: 4px solid #ccc;
+  border-right: 1.5px solid #F0F0F0;
+  border-top: 1.5px solid #F0F0F0;
+  border-bottom: 1.5px solid #F0F0F0;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
 
 .vaccine-name {
-  font-family: 'Poppins', sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  color: #1B2F1A;
+  font-weight: 800;
+  color: #1B3A2F;
   margin-bottom: 3px;
 }
 
 .vaccine-schedule {
-  font-size: 11px;
-  color: #8A9E82;
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
 }
 
 .vaccine-badge {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
   border-radius: 20px;
-  padding: 4px 10px;
   flex-shrink: 0;
 }
