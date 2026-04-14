@@ -25,31 +25,13 @@ const BREED_PHOTOS = {
   "Kankrej": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Kankrej_cattle.jpg",
   "Ongole": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ongole_cattle.jpg",
   "Hariana": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Hariana_cattle.jpg",
-  "Rathi": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Rathi_cattle.jpg",
   "Red Sindhi": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Red_Sindhi_bull.jpg",
-  "Dangi": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Dangi_cow.jpg",
-  "Deoni": "https://upload.wikimedia.org/wikipedia/commons/3/30/Deoni_cattle.jpg",
-  "Khillari": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Khillari_bull.jpg",
-  "Hallikar": "https://upload.wikimedia.org/wikipedia/commons/5/57/Hallikar_cattle.jpg",
-  "Amritmahal": "https://upload.wikimedia.org/wikipedia/commons/8/84/Amritmahal_cattle.jpg",
-  "Kangayam": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Kangayam_cattle.jpg",
-  "Bargur": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Bargur_cattle.jpg",
-  "Malnad Gidda": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Malnad_Gidda_cow.jpg",
-  "Nagori": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Nagori_cattle.jpg",
-  "Krishna Valley": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Krishna_valley_cattle.jpg",
 
-  // Buffalo
   "Murrah Buffalo": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Murrah_buffalo.jpg",
   "Jaffarabadi Buffalo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Jaffarabadi_buffalo.jpg",
-  "Nagpuri Buffalo": "https://upload.wikimedia.org/wikipedia/commons/6/63/Nagpuri_buffalo.jpg",
-  "Surti Buffalo": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Surti_buffalo.jpg",
-  "Nili-Ravi Buffalo": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Nili-Ravi_buffalo.jpg",
-  "Bhadawari Buffalo": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Bhadawari_buffalo.jpg",
 
-  // Exotic
   "Holstein Friesian": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Holstein_Friesian_cow.jpg",
-  "Jersey Cow": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Jersey_cow_and_calf.jpg",
-  "Ayrshire": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Ayrshire_cattle_on_pasture.jpg",
+  "Jersey": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Jersey_cow_and_calf.jpg",
   "Brown Swiss": "https://upload.wikimedia.org/wikipedia/commons/4/43/Brown_Swiss_bull.jpg"
 };
 
@@ -62,10 +44,13 @@ const TYPE_FALLBACK = {
 
 // ✅ SMART IMAGE HANDLING
 function getPhoto(breedName, type) {
+  const cleanName = breedName?.trim();
+
   return (
-    BREED_PHOTOS[breedName] ||
-    `https://source.unsplash.com/400x300/?${breedName},cattle` ||
-    TYPE_FALLBACK[type]
+    BREED_PHOTOS[cleanName] ||
+    `https://source.unsplash.com/400x300/?${cleanName},cow` ||
+    TYPE_FALLBACK[type] ||
+    TYPE_FALLBACK["Cow"]
   );
 }
 
@@ -110,6 +95,57 @@ export default function BreedEncyclopedia() {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+// ✅ ADD THIS AT BOTTOM OF FILE
+
+function BreedDetail({ breed, onBack }) {
+  const ts = TYPE_COLORS[breed.type] || TYPE_COLORS["Cow"];
+  const photo = getPhoto(breed.breed, breed.type);
+
+  return (
+    <div className="enc-container">
+      <button onClick={onBack} style={{ margin: "10px" }}>
+        ← Back to Encyclopedia
+      </button>
+
+      {/* ✅ HERO IMAGE */}
+      <div style={{ borderRadius: "20px", overflow: "hidden", margin: "10px" }}>
+        <img
+          src={photo}
+          alt={breed.breed}
+          style={{ width: "100%", height: "250px", objectFit: "cover" }}
+          onError={(e) => {
+            e.target.src = `https://source.unsplash.com/800x500/?${breed.breed},cow`;
+          }}
+        />
+      </div>
+
+      {/* Breed Info */}
+      <div style={{ padding: "15px" }}>
+        <h2>{breed.breed}</h2>
+        <p>📍 {breed.origin}</p>
+
+        <div style={{ marginTop: "10px" }}>
+          <span style={{
+            background: ts.bg,
+            color: ts.color,
+            padding: "6px 12px",
+            borderRadius: "20px"
+          }}>
+            {breed.type}
+          </span>
+        </div>
+
+        <div style={{ marginTop: "20px" }}>
+          <p><b>Milk Yield:</b> {breed.milk_yield}</p>
+          <p><b>Fat:</b> {breed.fat_content}</p>
+          <p><b>Weight:</b> {breed.weight}</p>
+          <p><b>Height:</b> {breed.height}</p>
+          <p><b>Lifespan:</b> {breed.lifespan}</p>
+        </div>
       </div>
     </div>
   );
