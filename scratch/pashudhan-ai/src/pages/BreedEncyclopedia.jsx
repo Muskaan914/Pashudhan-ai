@@ -8,7 +8,7 @@ import "./BreedEncyclopedia.css";
 // ── Local breed photos from src/assets/breeds/ ────────────────────────────
 const BREED_PHOTOS = {
   "Alambadi":             new URL("../assets/breeds/Alambadi.jpg",       import.meta.url).href,
-  "Amrit Mahal":          new URL("../assets/breeds/Amrit_Mahal.jpg",    import.meta.url).href,
+  "Amritmahal":          new URL("../assets/breeds/Amrit_Mahal.jpg",    import.meta.url).href,
   "Ayrshire":             new URL("../assets/breeds/Ayrshire.jpg",       import.meta.url).href,
   "Banni":                new URL("../assets/breeds/Banni.jpg",          import.meta.url).href,
   "Bargur":               new URL("../assets/breeds/Bargur.jpg",         import.meta.url).href,
@@ -22,7 +22,7 @@ const BREED_PHOTOS = {
   "Hariana":              new URL("../assets/breeds/Hariana.jpg",        import.meta.url).href,
   "Holstein Friesian":    new URL("../assets/breeds/Holstein.jpg",       import.meta.url).href,
   "Jaffarabadi Buffalo":  new URL("../assets/breeds/Jaffrabadi.jpg",     import.meta.url).href,
-  "Jersey":               new URL("../assets/breeds/Jersey.jpg",         import.meta.url).href,
+  "Jersey Cow":               new URL("../assets/breeds/Jersey.jpg",         import.meta.url).href,
   "Kangayam":             new URL("../assets/breeds/Kangayam.jpg",       import.meta.url).href,
   "Kankrej":              new URL("../assets/breeds/Kankrej.jpg",        import.meta.url).href,
   "Kasargod":             new URL("../assets/breeds/Kasargod.jpg",       import.meta.url).href,
