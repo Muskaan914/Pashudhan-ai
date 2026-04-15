@@ -58,6 +58,7 @@ const ChatbotHelper = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
