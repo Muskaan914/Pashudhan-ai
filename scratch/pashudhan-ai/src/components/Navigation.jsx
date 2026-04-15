@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, HeartPulse, Camera, Droplets, MessageCircle, User } from 'lucide-react';
-
+import { Home, HeartPulse, Camera, Droplets, User } from 'lucide-react';
 const Navigation = () => {
   return (
     <nav className="bottom-nav">
@@ -21,10 +20,6 @@ const Navigation = () => {
         <Droplets className="nav-icon" size={24} />
         <span>Milk</span>
       </NavLink>
-      <NavLink to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <MessageCircle className="nav-icon" size={24} />
-        <span>Helper</span>
-      </NavLink>
       <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <User className="nav-icon" size={24} />
         <span>Profile</span>
@@ -32,5 +27,4 @@ const Navigation = () => {
     </nav>
   );
 };
-
 export default Navigation;
