@@ -3,90 +3,56 @@ import { useState } from "react";
 import { BREED_DATABASE } from "../services/api";
 import "./BreedEncyclopedia.css";
 
-// ── Local breed images from src/assets/breeds/ ───────────────────────────
-import img_Alambadi        from "../assets/breeds/Alambadi.jpg";
-import img_Amrit_Mahal     from "../assets/breeds/Amrit_Mahal.jpg";
-import img_Ayrshire        from "../assets/breeds/Ayrshire.jpg";
-import img_Banni           from "../assets/breeds/Banni.jpg";
-import img_Bargur          from "../assets/breeds/Bargur.jpg";
-import img_Bhadawari       from "../assets/breeds/Bhadawari.jpg";
-import img_Brown_Swiss     from "../assets/breeds/Brown_Swiss.jpg";
-import img_Dangi           from "../assets/breeds/Dangi.jpg";
-import img_Deoni           from "../assets/breeds/Deoni.jpg";
-import img_Gir             from "../assets/breeds/Gir.jpg";
-import img_Guernsey        from "../assets/breeds/Guernsey.jpg";
-import img_Hallikar        from "../assets/breeds/Hallikar.jpg";
-import img_Hariana         from "../assets/breeds/Hariana.jpg";
-import img_Holstein        from "../assets/breeds/Holstein.jpg";
-import img_Jaffrabadi      from "../assets/breeds/Jaffrabadi.jpg";
-import img_Jersey          from "../assets/breeds/Jersey.jpg";
-import img_Kangayam        from "../assets/breeds/Kangayam.jpg";
-import img_Kankrej         from "../assets/breeds/Kankrej.jpg";
-import img_Kasargod        from "../assets/breeds/Kasargod.jpg";
-import img_Kenkatha        from "../assets/breeds/Kenkatha.jpg";
-import img_Kherigarh       from "../assets/breeds/Kherigarh.jpg";
-import img_Khillari        from "../assets/breeds/Khillari.jpg";
-import img_KrishnaValley   from "../assets/breeds/Krishna_Valley.jpg";
-import img_MalnadGidda     from "../assets/breeds/Malnad_Gidda.jpg";
-import img_Murrah          from "../assets/breeds/Murrah_Buffalo.jpg";
-import img_Nagori          from "../assets/breeds/Nagori.jpg";
-import img_Nagpuri         from "../assets/breeds/Nagpuri.jpg";
-import img_NiliRavi        from "../assets/breeds/Nili_Ravi.jpg";
-import img_Nimari          from "../assets/breeds/Nimari.jpg";
-import img_Ongole          from "../assets/breeds/Ongole.jpg";
-import img_Pulikulam       from "../assets/breeds/Pulikulam.jpg";
-import img_Rathi           from "../assets/breeds/Rathi.jpg";
-import img_RedDane         from "../assets/breeds/Red_Dane.jpg";
-import img_RedSindhi       from "../assets/breeds/Red_Sindhi.jpg";
-import img_Sahiwal         from "../assets/breeds/Sahiwal.jpg";
-import img_Surti           from "../assets/breeds/Surti.jpg";
-import img_Tharparkar      from "../assets/breeds/Tharparkar.jpg";
-import img_Toda            from "../assets/breeds/Toda.jpg";
-import img_Umblachery      from "../assets/breeds/Umblachery.jpg";
-import img_Vechur          from "../assets/breeds/Vechur.jpg";
 
-// ── breed name in api.js  →  local image ─────────────────────────────────
+
+// ── Local breed photos from src/assets/breeds/ ────────────────────────────
 const BREED_PHOTOS = {
-"Alambadi":            img_Alambadi,
-"Amrit Mahal":         img_Amrit_Mahal,
-"Ayrshire":            img_Ayrshire,
-"Banni":               img_Banni,
-"Bargur":              img_Bargur,
-"Bhadawari Buffalo":   img_Bhadawari,
-"Brown Swiss":         img_Brown_Swiss,
-"Dangi":               img_Dangi,
-"Deoni":               img_Deoni,
-"Gir":                 img_Gir,
-"Guernsey":            img_Guernsey,
-"Hallikar":            img_Hallikar,
-"Hariana":             img_Hariana,
-"Holstein Friesian":   img_Holstein,
-"Jaffarabadi Buffalo": img_Jaffrabadi,
-"Jersey":              img_Jersey,
-"Kangayam":            img_Kangayam,
-"Kankrej":             img_Kankrej,
-"Kasargod":            img_Kasargod,
-"Kenkatha":            img_Kenkatha,
-"Kherigarh":           img_Kherigarh,
-"Khillari":            img_Khillari,
-"Krishna Valley":      img_KrishnaValley,
-"Malnad Gidda":        img_MalnadGidda,
-"Murrah Buffalo":      img_Murrah,
-"Nagori":              img_Nagori,
-"Nagpuri Buffalo":     img_Nagpuri,
-"Nili-Ravi Buffalo":   img_NiliRavi,
-"Nimari":              img_Nimari,
-"Ongole":              img_Ongole,
-"Pulikulam":           img_Pulikulam,
-"Rathi":               img_Rathi,
-"Red Dane":            img_RedDane,
-"Red Sindhi":          img_RedSindhi,
-"Sahiwal":             img_Sahiwal,
-"Surti Buffalo":       img_Surti,
-"Tharparkar":          img_Tharparkar,
-"Toda":                img_Toda,
-"Umblachery":          img_Umblachery,
-"Vechur":              img_Vechur
+  "Alambadi":             new URL("../assets/breeds/Alambadi.jpg",       import.meta.url).href,
+  "Amrit Mahal":          new URL("../assets/breeds/Amrit_Mahal.jpg",    import.meta.url).href,
+  "Ayrshire":             new URL("../assets/breeds/Ayrshire.jpg",       import.meta.url).href,
+  "Banni":                new URL("../assets/breeds/Banni.jpg",          import.meta.url).href,
+  "Bargur":               new URL("../assets/breeds/Bargur.jpg",         import.meta.url).href,
+  "Bhadawari Buffalo":    new URL("../assets/breeds/Bhadawari.jpg",      import.meta.url).href,
+  "Brown Swiss":          new URL("../assets/breeds/Brown_Swiss.jpg",    import.meta.url).href,
+  "Dangi":                new URL("../assets/breeds/Dangi.jpg",          import.meta.url).href,
+  "Deoni":                new URL("../assets/breeds/Deoni.jpg",          import.meta.url).href,
+  "Gir":                  new URL("../assets/breeds/Gir.jpg",            import.meta.url).href,
+  "Guernsey":             new URL("../assets/breeds/Guernsey.jpg",       import.meta.url).href,
+  "Hallikar":             new URL("../assets/breeds/Hallikar.jpg",       import.meta.url).href,
+  "Hariana":              new URL("../assets/breeds/Hariana.jpg",        import.meta.url).href,
+  "Holstein Friesian":    new URL("../assets/breeds/Holstein.jpg",       import.meta.url).href,
+  "Jaffarabadi Buffalo":  new URL("../assets/breeds/Jaffrabadi.jpg",     import.meta.url).href,
+  "Jersey":               new URL("../assets/breeds/Jersey.jpg",         import.meta.url).href,
+  "Kangayam":             new URL("../assets/breeds/Kangayam.jpg",       import.meta.url).href,
+  "Kankrej":              new URL("../assets/breeds/Kankrej.jpg",        import.meta.url).href,
+  "Kasargod":             new URL("../assets/breeds/Kasargod.jpg",       import.meta.url).href,
+  "Kenkatha":             new URL("../assets/breeds/Kenkatha.jpg",       import.meta.url).href,
+  "Kherigarh":            new URL("../assets/breeds/Kherigarh.jpg",      import.meta.url).href,
+  "Khillari":             new URL("../assets/breeds/Khillari.jpg",       import.meta.url).href,
+  "Krishna Valley":       new URL("../assets/breeds/Krishna_Valley.jpg", import.meta.url).href,
+  "Malnad Gidda":         new URL("../assets/breeds/Malnad_Gidda.jpg",   import.meta.url).href,
+  "Murrah Buffalo":       new URL("../assets/breeds/Murrah_Buffalo.jpg", import.meta.url).href,
+  "Nagori":               new URL("../assets/breeds/Nagori.jpg",         import.meta.url).href,
+  "Nagpuri Buffalo":      new URL("../assets/breeds/Nagpuri.jpg",        import.meta.url).href,
+  "Nili-Ravi Buffalo":    new URL("../assets/breeds/Nili_Ravi.jpg",      import.meta.url).href,
+  "Nimari":               new URL("../assets/breeds/Nimari.jpg",         import.meta.url).href,
+  "Ongole":               new URL("../assets/breeds/Ongole.jpg",         import.meta.url).href,
+  "Pulikulam":            new URL("../assets/breeds/Pulikulam.jpg",      import.meta.url).href,
+  "Rathi":                new URL("../assets/breeds/Rathi.jpg",          import.meta.url).href,
+  "Red Dane":             new URL("../assets/breeds/Red_Dane.jpg",       import.meta.url).href,
+  "Red Sindhi":           new URL("../assets/breeds/Red_Sindhi.jpg",     import.meta.url).href,
+  "Sahiwal":              new URL("../assets/breeds/Sahiwal.jpg",        import.meta.url).href,
+  "Surti Buffalo":        new URL("../assets/breeds/Surti.jpg",          import.meta.url).href,
+  "Tharparkar":           new URL("../assets/breeds/Tharparkar.jpg",     import.meta.url).href,
+  "Toda":                 new URL("../assets/breeds/Toda.jpg",           import.meta.url).href,
+  "Umblachery":           new URL("../assets/breeds/Umblachery.jpg",     import.meta.url).href,
+  "Vechur":               new URL("../assets/breeds/Vechur.jpg",         import.meta.url).href,
+};
+
+const TYPE_FALLBACK = {
+  "Cow":         new URL("../assets/breeds/Holstein.jpg", import.meta.url).href,
+  "Buffalo":     new URL("../assets/breeds/Murrah_Buffalo.jpg", import.meta.url).href,
+  "Cow/Buffalo": new URL("../assets/breeds/Banni.jpg", import.meta.url).href,
 };
 
 const TYPE_COLORS = {
