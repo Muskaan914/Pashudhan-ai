@@ -10,7 +10,6 @@ import Dashboard      from './pages/Dashboard';
 import HealthTracking from './pages/HealthTracking';
 import ImageScanner   from './pages/ImageScanner';
 import MilkProduction from './pages/MilkProduction';
-import ChatbotHelper  from './pages/ChatbotHelper';
 import FarmerProfile  from './pages/FarmerProfile';
 import BreedEncyclopedia from './pages/BreedEncyclopedia';
 import VaccineInfo    from './pages/VaccineInfo';
@@ -54,7 +53,6 @@ function App() {
             <Route path="/health"  element={<HealthTracking />} />
             <Route path="/scan"    element={<ImageScanner />} />
             <Route path="/milk"    element={<MilkProduction />} />
-            <Route path="/chat"    element={<ChatbotHelper />} />
             <Route path="/profile" element={<FarmerProfile />} />
             <Route path="/breeds"  element={<BreedEncyclopedia />} />
             <Route path="/vaccines" element={<VaccineInfo />} />
