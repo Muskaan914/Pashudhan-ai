@@ -109,7 +109,7 @@ npm run dev
 
 ---
 
-## 🌿 Supported Breeds (41 classes)
+## 🌿 Supported Breeds (40 classes)
 
 **Indian Cows:** Gir, Sahiwal, Tharparkar, Kankrej, Ongole, Hariana, Rathi, Red Sindhi, Dangi, Deoni, Khillari, Hallikar, Amritmahal, Kangayam, Alambadi, Bargur, Malnad Gidda, Nagori, Nimari, Krishna Valley, Kenkatha, Toda, Pulikulam, Umblachery, Kasargod, Banni, Vechur
 
