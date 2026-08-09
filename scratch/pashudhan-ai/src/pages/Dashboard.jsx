@@ -153,7 +153,7 @@ export default function Dashboard() {
       <div className="tip-banner">
         <span className="tip-emoji">🌡️</span>
         <p className="tip-text">
-          It's hot outside! Ensure your animals have shaded areas and plenty of drinking water to maintain milk yield and prevent heat stress.
+          Rainy weather today! Keep cattle and buffaloes in a dry, well-drained shelter and avoid prolonged exposure to rain. Ensure clean drinking water and dry bedding to help prevent infections and maintain animal comfort.
         </p>
       </div>
 
