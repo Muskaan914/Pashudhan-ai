@@ -1,0 +1,32 @@
+/* src/pages/VaccineInfo.css */
+.vac-container  { max-width: 600px; margin: 0 auto; padding: 24px 16px 80px; background: #F5F0E8; min-height: 100vh; }
+.page-label     { font-size: 13px; color: #888; margin-bottom: 2px; }
+.page-title     { font-size: 26px; font-weight: 700; color: #1B3A2F; margin-bottom: 16px; }
+.schedule-banner { background: #2D6A4F; border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.banner-title   { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.banner-sub     { font-size: 12px; color: rgba(255,255,255,0.8); }
+.search-bar     { display: flex; align-items: center; background: #fff; border-radius: 12px; padding: 0 14px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.search-bar input { flex: 1; border: none; outline: none; padding: 14px 10px; font-size: 14px; background: transparent; color: #333; font-family: inherit; }
+.search-icon    { font-size: 16px; color: #888; }
+.clear-search   { background: none; border: none; color: #888; cursor: pointer; font-size: 16px; }
+.vac-list       { display: flex; flex-direction: column; gap: 10px; }
+.vac-card       { background: #fff; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: transform 0.15s; }
+.vac-card:active { transform: scale(0.98); }
+.vac-icon-wrap  { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.vac-card-body  { flex: 1; }
+.vac-name       { font-size: 14px; font-weight: 700; color: #1B3A2F; margin-bottom: 3px; }
+.vac-animals    { font-size: 11px; color: #888; margin-bottom: 2px; }
+.vac-schedule   { font-size: 11px; color: #2D6A4F; font-weight: 600; }
+.priority-badge { font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 700; white-space: nowrap; }
+.vac-arrow      { font-size: 20px; color: #ccc; }
+.no-results     { text-align: center; padding: 40px 0; }
+.back-btn       { background: none; border: none; color: #2D6A4F; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 16px; }
+.vac-hero       { border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.detail-name    { font-size: 18px; font-weight: 700; color: #1B3A2F; margin-bottom: 8px; }
+.info-row       { background: #fff; border-radius: 12px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.info-icon      { font-size: 18px; margin-top: 2px; }
+.info-label     { font-size: 11px; color: #888; margin-bottom: 3px; }
+.info-value     { font-size: 14px; font-weight: 600; color: #1B3A2F; }
+.detail-card-vac { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; border-left: 4px solid #2D6A4F; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.detail-label   { font-size: 13px; font-weight: 700; color: #1B3A2F; margin-bottom: 6px; }
+.detail-text    { font-size: 13px; color: #555; line-height: 1.6; }

@@ -1,12 +1,25 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-annotations/
-brain/
-browser_recordings/
-conversations/
-implicit/
-knowledge/
-prompting/
-installation_id
-mcp_config.json
-.agents/
-stitch-skills/
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env 
